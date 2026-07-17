@@ -1,0 +1,38 @@
+.import-pdf-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.import-pdf-input {
+  display: none;
+}
+
+.import-pdf-button {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.import-pdf-button:hover {
+  background: var(--accent-border);
+}
+
+.import-pdf-filename {
+  color: var(--text-h);
+  font-size: 14px;
+}
+
+.import-pdf-status {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.import-pdf-error {
+  color: #f87171;
+  font-size: 14px;
+}

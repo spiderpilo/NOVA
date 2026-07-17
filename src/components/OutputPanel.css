@@ -1,0 +1,68 @@
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.output-header h2 {
+  margin: 0;
+}
+
+.copy-button {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.output-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.output-placeholder {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.output-text {
+  flex: 1 1 auto;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  white-space: pre-wrap;
+  font-family: var(--sans);
+  color: var(--text-h);
+  font-size: 15px;
+  line-height: 150%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.output-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.output-error p {
+  color: #f87171;
+  font-size: 14px;
+}
+
+.output-error button {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  cursor: pointer;
+}
