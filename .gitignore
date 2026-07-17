@@ -15,6 +15,9 @@ dist-ssr
 # Environment variables (contains OPENAI_API_KEY)
 .env
 
+# Local TLS cert/key for dev HTTPS (regenerate with npm run gen-cert)
+certs/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

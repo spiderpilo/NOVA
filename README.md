@@ -7,10 +7,18 @@ check for whether anything important looks missing.
 ## Setup
 
 1. `npm install`
-2. Copy `.env.example` to `.env` and fill in `OPENAI_API_KEY` (get one at
-   [platform.openai.com/api-keys](https://platform.openai.com/api-keys)).
-3. `npm run dev:all` — starts the Vite dev server (`:5173`) and the API
-   server (`:3001`) together.
+2. Copy `.env.example` to `.env` and fill in:
+   - `OPENAI_API_KEY` (get one at
+     [platform.openai.com/api-keys](https://platform.openai.com/api-keys)).
+   - `AUTH_USER` / `AUTH_PASSWORD` — required; the API server refuses to
+     start without both. Generate a strong password, e.g.
+     `openssl rand -base64 18`.
+3. `npm run gen-cert` — generates a self-signed TLS cert into `certs/`
+   (gitignored) so both dev servers can run over HTTPS. Your browser will
+   warn that the cert isn't trusted; that's expected for a local dev cert.
+4. `npm run dev:all` — starts the Vite dev server (`:5173`) and the API
+   server (`:3001`) together, both over HTTPS. The browser will prompt for
+   the `AUTH_USER` / `AUTH_PASSWORD` credentials on first API call.
 
 ## How it works
 
@@ -27,18 +35,41 @@ check for whether anything important looks missing.
   assessment/plan). Any section whose usual header/keywords aren't found is
   flagged as worth a second look — a heuristic warning, not a claim that
   content is actually missing.
+- The API server requires HTTP Basic Auth on every request (`server/authMiddleware.js`)
+  and writes an access-only audit trail to `server/logs/audit.log`
+  (`server/auditLog.js`) — timestamp, method, path, status, user, IP. The
+  audit log never contains note text or model output, only who accessed the
+  endpoint and when.
+- Both dev servers run over HTTPS using a locally generated self-signed cert
+  (`certs/`, gitignored — regenerate with `npm run gen-cert`).
 
-## Privacy note
+## Privacy / compliance note
 
-This app sends extracted patient note text to OpenAI's API for rewording and
-the completeness check. Review OpenAI's API data-handling and retention terms
-before using this with real patient data in any regulated context — this
-project does not implement HIPAA-level compliance controls (no encryption at
-rest, no audit logging, no BAA). The app itself never logs extracted text or
-model output, and does not persist any of it beyond browser memory for the
-current session.
+This app sends extracted patient note text to OpenAI's API for rewording.
+Before using this with real patient data in any regulated context, you still
+need, at minimum:
+
+- **A signed Business Associate Agreement (BAA) with OpenAI**, with zero data
+  retention enabled on your account. This is a legal/procurement step handled
+  directly with OpenAI — nothing in this codebase can satisfy it, and no PHI
+  should go through this app until it's in place.
+- **A real TLS certificate** for any non-localhost deployment — the
+  self-signed cert here is for local development only and will not be
+  trusted by browsers or valid for a real domain.
+- **A proper credential/secrets story** — `AUTH_USER`/`AUTH_PASSWORD` here is
+  a single shared login suitable for one local user, not a multi-user
+  account system. It has no session expiry, no lockout after failed
+  attempts, no per-user audit identity, and the password lives in plaintext
+  in `.env`.
+- **Administrative safeguards** required by the HIPAA Security Rule that are
+  entirely outside of code: a documented risk analysis, workforce training,
+  breach notification procedures, and a retention/disposal policy.
+
+The app itself never logs extracted text or model output (only the access
+metadata described above), and does not persist note content anywhere beyond
+browser memory for the current session.
 
 ## Scope
 
 Not supported in this version: scanned/image PDFs (no OCR), streaming
-responses, persistence, authentication.
+responses, persistence, multi-user accounts.

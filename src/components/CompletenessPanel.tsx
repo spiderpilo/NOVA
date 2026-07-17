@@ -15,7 +15,7 @@ function CompletenessPanel({ status, verdict, missingItems, onRecheck }: Props) 
       <div className="completeness-header">
         <h2>Completeness Check</h2>
         {status === 'done' && (
-          <button type="button" className="recheck-button" onClick={onRecheck}>
+          <button type="button" className="btn btn-sm" onClick={onRecheck}>
             Update check
           </button>
         )}

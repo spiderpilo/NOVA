@@ -10,16 +10,6 @@
   margin: 0;
 }
 
-.recheck-button {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
-  border-radius: var(--radius);
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
 .completeness-placeholder {
   color: var(--text);
   font-size: 14px;

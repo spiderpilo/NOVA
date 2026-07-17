@@ -26,7 +26,7 @@ function OutputPanel({ status, reworded, error, onRetry, onChange }: Props) {
       <div className="output-header">
         <h2>Reworded Output</h2>
         {status === 'done' && reworded && (
-          <button type="button" className="copy-button" onClick={handleCopy}>
+          <button type="button" className="btn btn-sm" onClick={handleCopy}>
             {copied ? 'Copied!' : 'Copy text'}
           </button>
         )}
@@ -37,7 +37,7 @@ function OutputPanel({ status, reworded, error, onRetry, onChange }: Props) {
         {status === 'error' && (
           <div className="output-error">
             <p>{error}</p>
-            <button type="button" onClick={onRetry}>
+            <button type="button" className="btn" onClick={onRetry}>
               Try again
             </button>
           </div>

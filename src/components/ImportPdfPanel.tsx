@@ -45,7 +45,7 @@ function ImportPdfPanel({ onExtracted }: Props) {
           onChange={handleChange}
           className="import-pdf-input"
         />
-        <button type="button" className="import-pdf-button" onClick={() => inputRef.current?.click()}>
+        <button type="button" className="btn" onClick={() => inputRef.current?.click()}>
           Choose PDF
         </button>
 

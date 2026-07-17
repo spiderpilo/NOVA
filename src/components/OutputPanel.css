@@ -10,16 +10,6 @@
   margin: 0;
 }
 
-.copy-button {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
-  border-radius: var(--radius);
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
 .output-content {
   display: flex;
   flex-direction: column;
@@ -58,11 +48,3 @@
   font-size: 14px;
 }
 
-.output-error button {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
-  border-radius: var(--radius);
-  padding: 8px 16px;
-  cursor: pointer;
-}

@@ -52,7 +52,8 @@ function App() {
   }
 
   function handleRecheckCompleteness() {
-    if (reworded) runCompletenessCheck(reworded)
+    const text = reworded ?? extractedText
+    if (text) runCompletenessCheck(text)
   }
 
   return (
