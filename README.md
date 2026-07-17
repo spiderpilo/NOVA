@@ -43,6 +43,38 @@ check for whether anything important looks missing.
 - Both dev servers run over HTTPS using a locally generated self-signed cert
   (`certs/`, gitignored — regenerate with `npm run gen-cert`).
 
+## Deploying to Vercel
+
+**Only use synthetic/mock patient data on a deployment until the OpenAI BAA
+is signed and zero data retention is confirmed** — see the compliance note
+below. Vercel itself can be made HIPAA-eligible (BAA available on Pro/
+Enterprise), but that's a separate step from the OpenAI BAA, and neither is
+in place by default.
+
+The API is structured to run both as a local long-running process
+(`server/index.js`, used by `npm run dev:server`) and as a Vercel serverless
+function (`api/index.js`) — both just wrap the same Express app defined in
+`server/app.js`. `vercel.json` rewrites all `/api/*` requests to that
+function.
+
+To deploy: connect this repo in Vercel (or `vercel --prod` if using the
+CLI), then set these under Project Settings → Environment Variables —
+**the app will fail on cold start if any required one is missing**:
+
+- `OPENAI_API_KEY` — required.
+- `AUTH_USER` / `AUTH_PASSWORD` — required. HTTP Basic Auth is still enforced
+  on a deployed instance; don't skip this just because it's "only for
+  employees to try."
+- `OPENAI_MODEL` — optional, defaults to `gpt-4o-mini`.
+
+Note that `certs/` (the local self-signed TLS cert) is irrelevant on
+Vercel — Vercel terminates HTTPS itself, so `api/index.js` never touches
+that cert-loading logic at all. Also, the audit log writes to `console.log`
+instead of a local file when deployed (`server/auditLog.js` detects the
+`VERCEL` env var Vercel sets automatically) — view it under your Vercel
+project's Function Logs, since a serverless function's local filesystem
+isn't persistent between invocations.
+
 ## Privacy / compliance note
 
 This app sends extracted patient note text to OpenAI's API for rewording.

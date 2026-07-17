@@ -4,8 +4,7 @@ const AUTH_USER = process.env.AUTH_USER;
 const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 
 if (!AUTH_USER || !AUTH_PASSWORD) {
-  console.error('AUTH_USER / AUTH_PASSWORD is not set. Create a .env file — see .env.example.');
-  process.exit(1);
+  throw new Error('AUTH_USER / AUTH_PASSWORD is not set. Create a .env file (see .env.example) or, when deployed, set them in your hosting provider\'s environment variables.');
 }
 
 function safeEqual(a, b) {

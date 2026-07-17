@@ -6,7 +6,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOG_DIR = path.join(__dirname, 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'audit.log');
 
-const logDirReady = mkdir(LOG_DIR, { recursive: true });
+// Vercel's serverless functions have a read-only filesystem outside /tmp,
+// and /tmp itself isn't persisted or shared across invocations — so a local
+// log file isn't durable there. Write to stdout instead; Vercel captures
+// that as Function Logs, which is the platform's actual audit trail.
+const isServerless = Boolean(process.env.VERCEL);
+
+const logDirReady = isServerless ? Promise.resolve() : mkdir(LOG_DIR, { recursive: true });
 
 // Records who accessed which endpoint, when, and whether it succeeded —
 // never the request or response body, since that's where PHI (the note
@@ -24,6 +30,11 @@ export function auditLog(req, res, next) {
       ip: req.ip,
       durationMs: Date.now() - start,
     };
+
+    if (isServerless) {
+      console.log('AUDIT', JSON.stringify(entry));
+      return;
+    }
 
     logDirReady
       .then(() => appendFile(LOG_FILE, JSON.stringify(entry) + '\n'))
