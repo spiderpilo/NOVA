@@ -1,4 +1,4 @@
-# Progress Note Rewording App
+# Note Observation & Validation Assistant
 
 Import a patient progress-notes PDF, extract its text client-side, and get a
 version reworded into a standard PM&R progress note format via GPT — plus a
