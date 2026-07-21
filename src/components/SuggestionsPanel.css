@@ -1,0 +1,123 @@
+.suggestions-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex: 0 0 auto;
+}
+
+.suggestions-header h2 {
+  margin: 0;
+}
+
+.suggestions-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.suggestions-placeholder {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.suggestions-placeholder-small {
+  font-size: 13px;
+}
+
+.suggestions-error {
+  color: #f87171;
+  font-size: 14px;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestion-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.suggestion-item:hover {
+  border-color: var(--accent-border);
+}
+
+.suggestion-item-selected {
+  border-color: rgba(74, 222, 128, 0.5);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.suggestion-item-selected:hover {
+  border-color: #4ade80;
+}
+
+.suggestion-category {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.suggestion-item-selected .suggestion-category {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.15);
+}
+
+.suggestion-text {
+  color: var(--text-h);
+  font-size: 13px;
+  line-height: 145%;
+}
+
+.suggestion-med-caveat {
+  color: #facc15;
+  font-size: 11px;
+  line-height: 140%;
+}
+
+.selected-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.selected-suggestions h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+}
+
+.apply-suggestions-button {
+  width: 100%;
+}
+
+.apply-suggestions-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

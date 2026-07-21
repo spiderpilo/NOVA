@@ -1,8 +1,9 @@
 .output-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 12px;
   flex: 0 0 auto;
 }
 
@@ -46,5 +47,38 @@
 .output-error p {
   color: #f87171;
   font-size: 14px;
+}
+
+.output-diff-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.output-diff-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.output-diff {
+  overflow-y: auto;
+  cursor: text;
+}
+
+.output-diff:focus {
+  outline: none;
+}
+
+.diff-added {
+  background: rgba(74, 222, 128, 0.18);
+  color: #4ade80;
+  border-radius: 3px;
 }
 
