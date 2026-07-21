@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { diffWords } from 'diff'
 import './OutputPanel.css'
 
 export type RewordStatus = 'idle' | 'loading' | 'error' | 'done'
@@ -6,12 +7,14 @@ export type RewordStatus = 'idle' | 'loading' | 'error' | 'done'
 interface Props {
   status: RewordStatus
   reworded: string | null
+  previousReworded: string | null
   error: string | null
   onRetry: () => void
   onChange: (text: string) => void
+  onDismissDiff: () => void
 }
 
-function OutputPanel({ status, reworded, error, onRetry, onChange }: Props) {
+function OutputPanel({ status, reworded, previousReworded, error, onRetry, onChange, onDismissDiff }: Props) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -20,6 +23,8 @@ function OutputPanel({ status, reworded, error, onRetry, onChange }: Props) {
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
+
+  const showDiff = status === 'done' && reworded !== null && previousReworded !== null
 
   return (
     <section className="panel">
@@ -42,7 +47,30 @@ function OutputPanel({ status, reworded, error, onRetry, onChange }: Props) {
             </button>
           </div>
         )}
-        {status === 'done' && reworded !== null && (
+        {status === 'done' && reworded !== null && showDiff && (
+          <div className="output-diff-wrap">
+            <div className="output-diff-banner">
+              <span>Highlighted: what changed from the interview</span>
+              <button type="button" className="btn btn-sm" onClick={onDismissDiff}>
+                Edit note
+              </button>
+            </div>
+            <pre className="output-text output-diff">
+              {diffWords(previousReworded, reworded)
+                .filter((part) => !part.removed)
+                .map((part, i) =>
+                  part.added ? (
+                    <span key={i} className="diff-added">
+                      {part.value}
+                    </span>
+                  ) : (
+                    <span key={i}>{part.value}</span>
+                  ),
+                )}
+            </pre>
+          </div>
+        )}
+        {status === 'done' && reworded !== null && !showDiff && (
           <textarea
             className="output-text"
             value={reworded}

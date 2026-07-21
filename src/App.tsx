@@ -4,12 +4,14 @@ import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
-import { ApiError, rewordText } from './lib/apiClient'
+import SuggestionsPanel from './components/SuggestionsPanel'
+import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
 
 function App() {
   const [rewordStatus, setRewordStatus] = useState<RewordStatus>('idle')
   const [reworded, setReworded] = useState<string | null>(null)
+  const [previousReworded, setPreviousReworded] = useState<string | null>(null)
   const [rewordError, setRewordError] = useState<string | null>(null)
   const [extractedText, setExtractedText] = useState<string | null>(null)
 
@@ -17,16 +19,56 @@ function App() {
   const [verdict, setVerdict] = useState<string | null>(null)
   const [missingItems, setMissingItems] = useState<string[]>([])
 
+  function applyRewordResult(result: string, baseline: string | null) {
+    setPreviousReworded(baseline)
+    setReworded(result)
+    setRewordStatus('done')
+    runCompletenessCheck(result)
+  }
+
   async function runReword(text: string) {
     setRewordStatus('loading')
     setRewordError(null)
     try {
       const result = await rewordText(text)
-      setReworded(result)
-      setRewordStatus('done')
-      runCompletenessCheck(result)
+      applyRewordResult(result, null)
     } catch (err) {
       setRewordError(err instanceof ApiError ? err.message : 'Failed to reword text.')
+      setRewordStatus('error')
+    }
+  }
+
+  // Chat answers don't reword the note from scratch — that would let the AI
+  // rephrase unrelated sentences on every answer, making the diff highlight
+  // noisy. Instead this edits the current note in place, touching only what
+  // the new answer actually affects, so the highlight reflects real changes.
+  async function handleChatAnswer(question: string, answer: string) {
+    if (!reworded) return
+    const baseline = reworded
+    setRewordStatus('loading')
+    setRewordError(null)
+    try {
+      const result = await updateNoteWithAnswer(reworded, question, answer)
+      applyRewordResult(result, baseline)
+    } catch (err) {
+      setRewordError(err instanceof ApiError ? err.message : 'Failed to update the note.')
+      setRewordStatus('error')
+    }
+  }
+
+  // Same precise, preserve-everything-else editing approach as chat answers
+  // — only now the "new information" is one or more physician-selected
+  // suggestions instead of a Q&A pair.
+  async function handleApplySuggestions(selected: string[]) {
+    if (!reworded) return
+    const baseline = reworded
+    setRewordStatus('loading')
+    setRewordError(null)
+    try {
+      const result = await applySuggestions(reworded, selected)
+      applyRewordResult(result, baseline)
+    } catch (err) {
+      setRewordError(err instanceof ApiError ? err.message : 'Failed to apply suggestions.')
       setRewordStatus('error')
     }
   }
@@ -50,6 +92,11 @@ function App() {
 
   function handleOutputChange(text: string) {
     setReworded(text)
+    setPreviousReworded(null)
+  }
+
+  function handleDismissDiff() {
+    setPreviousReworded(null)
   }
 
   function handleRecheckCompleteness() {
@@ -68,13 +115,16 @@ function App() {
           onRecheck={handleRecheckCompleteness}
         />
       </div>
-      <ChatPanel />
+      <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
+      <SuggestionsPanel noteText={reworded} originalText={extractedText} onApply={handleApplySuggestions} />
       <OutputPanel
         status={rewordStatus}
         reworded={reworded}
+        previousReworded={previousReworded}
         error={rewordError}
         onRetry={handleRetryReword}
         onChange={handleOutputChange}
+        onDismissDiff={handleDismissDiff}
       />
     </div>
   )
