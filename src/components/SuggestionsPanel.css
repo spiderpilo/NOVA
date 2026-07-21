@@ -90,6 +90,12 @@
   line-height: 145%;
 }
 
+.suggestion-med-caveat {
+  color: #facc15;
+  font-size: 11px;
+  line-height: 140%;
+}
+
 .selected-suggestions {
   display: flex;
   flex-direction: column;

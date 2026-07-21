@@ -66,6 +66,24 @@ function SuggestionsPanel({ noteText, originalText, onApply }: Props) {
     setSelected([])
   }
 
+  function renderSuggestion(s: Suggestion, selectedStyle: boolean, onClick: () => void) {
+    return (
+      <button
+        type="button"
+        className={selectedStyle ? 'suggestion-item suggestion-item-selected' : 'suggestion-item'}
+        onClick={onClick}
+      >
+        <span className="suggestion-category">{s.category}</span>
+        <span className="suggestion-text">{s.text}</span>
+        {s.category === 'Medications' && (
+          <span className="suggestion-med-caveat">
+            Verify against allergies, interactions, and renal/hepatic function before prescribing.
+          </span>
+        )}
+      </button>
+    )
+  }
+
   const idle = !noteText
 
   return (
@@ -93,12 +111,7 @@ function SuggestionsPanel({ noteText, originalText, onApply }: Props) {
             {suggestions.length > 0 && (
               <ul className="suggestions-list">
                 {suggestions.map((s, i) => (
-                  <li key={i}>
-                    <button type="button" className="suggestion-item" onClick={() => selectSuggestion(s)}>
-                      <span className="suggestion-category">{s.category}</span>
-                      <span className="suggestion-text">{s.text}</span>
-                    </button>
-                  </li>
+                  <li key={i}>{renderSuggestion(s, false, () => selectSuggestion(s))}</li>
                 ))}
               </ul>
             )}
@@ -112,16 +125,7 @@ function SuggestionsPanel({ noteText, originalText, onApply }: Props) {
               ) : (
                 <ul className="suggestions-list">
                   {selected.map((s, i) => (
-                    <li key={i}>
-                      <button
-                        type="button"
-                        className="suggestion-item suggestion-item-selected"
-                        onClick={() => deselectSuggestion(s)}
-                      >
-                        <span className="suggestion-category">{s.category}</span>
-                        <span className="suggestion-text">{s.text}</span>
-                      </button>
-                    </li>
+                    <li key={i}>{renderSuggestion(s, true, () => deselectSuggestion(s))}</li>
                   ))}
                 </ul>
               )}
