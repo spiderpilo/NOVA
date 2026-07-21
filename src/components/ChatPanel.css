@@ -1,0 +1,11 @@
+.chat-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.chat-placeholder {
+  color: var(--text);
+  font-size: 14px;
+}

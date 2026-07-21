@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
@@ -67,6 +68,7 @@ function App() {
           onRecheck={handleRecheckCompleteness}
         />
       </div>
+      <ChatPanel />
       <OutputPanel
         status={rewordStatus}
         reworded={reworded}
