@@ -6,26 +6,28 @@ import type { Suggestion } from '../lib/types'
 interface Props {
   noteText: string | null
   originalText: string | null
+  noteVersion: number
   onApply: (selected: string[]) => void
 }
 
-function SuggestionsPanel({ noteText, originalText, onApply }: Props) {
+function SuggestionsPanel({ noteText, originalText, noteVersion, onApply }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [selected, setSelected] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const startedForRef = useRef<string | null>(null)
+  const startedForRef = useRef<number | null>(null)
 
-  // Generates suggestions once, the first time a reworded note is available
-  // for this imported PDF — refreshing afterward is a manual action, since
-  // regenerating automatically on every note change would be noisy and costly.
+  // Refreshes suggestions after each AI-driven note change (reword, chat
+  // answer, applied suggestion) — keyed on noteVersion rather than noteText
+  // itself, since noteText also changes on every keystroke of a manual edit
+  // and we don't want to re-fetch on every character typed.
   useEffect(() => {
     if (!noteText || !originalText) return
-    if (startedForRef.current === noteText) return
-    startedForRef.current = noteText
+    if (startedForRef.current === noteVersion) return
+    startedForRef.current = noteVersion
     void fetchSuggestions(noteText, originalText)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteText, originalText])
+  }, [noteVersion, noteText, originalText])
 
   async function fetchSuggestions(note: string, original: string) {
     setLoading(true)
@@ -43,7 +45,7 @@ function SuggestionsPanel({ noteText, originalText, onApply }: Props) {
   function handleRefresh() {
     if (!noteText || !originalText) return
     setSelected([])
-    startedForRef.current = noteText
+    startedForRef.current = noteVersion
     void fetchSuggestions(noteText, originalText)
   }
 

@@ -69,6 +69,11 @@
 
 .output-diff {
   overflow-y: auto;
+  cursor: text;
+}
+
+.output-diff:focus {
+  outline: none;
 }
 
 .diff-added {

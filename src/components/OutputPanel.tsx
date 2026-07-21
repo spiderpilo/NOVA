@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { diffWords } from 'diff'
 import './OutputPanel.css'
 
@@ -12,6 +12,54 @@ interface Props {
   onRetry: () => void
   onChange: (text: string) => void
   onDismissDiff: () => void
+}
+
+interface DiffEditableProps {
+  oldText: string
+  newText: string
+  onChange: (text: string) => void
+}
+
+// Builds the diff once per baseline and lets the browser own the DOM from
+// then on — re-rendering on every keystroke (the way a controlled React
+// element normally would) would reset the cursor and fight the user's
+// typing. Only a genuinely new baseline (a fresh AI regeneration) rebuilds
+// the highlighted content; edits after that just flow out via onInput.
+function DiffEditable({ oldText, newText, onChange }: DiffEditableProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const renderedForRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!ref.current || renderedForRef.current === oldText) return
+    renderedForRef.current = oldText
+
+    const el = ref.current
+    el.innerHTML = ''
+    for (const part of diffWords(oldText, newText)) {
+      if (part.removed) continue
+      if (part.added) {
+        const span = document.createElement('span')
+        span.className = 'diff-added'
+        span.textContent = part.value
+        el.appendChild(span)
+      } else {
+        el.appendChild(document.createTextNode(part.value))
+      }
+    }
+    // Only the baseline should trigger a rebuild — see comment above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oldText])
+
+  return (
+    <div
+      ref={ref}
+      className="output-text output-diff"
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onInput={(e) => onChange(e.currentTarget.innerText)}
+    />
+  )
 }
 
 function OutputPanel({ status, reworded, previousReworded, error, onRetry, onChange, onDismissDiff }: Props) {
@@ -50,24 +98,12 @@ function OutputPanel({ status, reworded, previousReworded, error, onRetry, onCha
         {status === 'done' && reworded !== null && showDiff && (
           <div className="output-diff-wrap">
             <div className="output-diff-banner">
-              <span>Highlighted: what changed from the interview</span>
+              <span>Highlighted: what changed from the interview — still editable</span>
               <button type="button" className="btn btn-sm" onClick={onDismissDiff}>
-                Edit note
+                Clear highlights
               </button>
             </div>
-            <pre className="output-text output-diff">
-              {diffWords(previousReworded, reworded)
-                .filter((part) => !part.removed)
-                .map((part, i) =>
-                  part.added ? (
-                    <span key={i} className="diff-added">
-                      {part.value}
-                    </span>
-                  ) : (
-                    <span key={i}>{part.value}</span>
-                  ),
-                )}
-            </pre>
+            <DiffEditable oldText={previousReworded} newText={reworded} onChange={onChange} />
           </div>
         )}
         {status === 'done' && reworded !== null && !showDiff && (

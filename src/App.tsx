@@ -19,10 +19,17 @@ function App() {
   const [verdict, setVerdict] = useState<string | null>(null)
   const [missingItems, setMissingItems] = useState<string[]>([])
 
+  // Bumped only on AI-driven regenerations (reword, chat answer, applied
+  // suggestions) — used to trigger the Suggestions panel's auto-refresh
+  // without it also firing on every keystroke of a manual edit, since
+  // reworded itself changes on every keystroke too.
+  const [noteVersion, setNoteVersion] = useState(0)
+
   function applyRewordResult(result: string, baseline: string | null) {
     setPreviousReworded(baseline)
     setReworded(result)
     setRewordStatus('done')
+    setNoteVersion((v) => v + 1)
     runCompletenessCheck(result)
   }
 
@@ -90,9 +97,11 @@ function App() {
     if (extractedText) void runReword(extractedText)
   }
 
+  // Deliberately doesn't clear previousReworded — the diff highlighting
+  // should stay visible while editing, not vanish on the first keystroke.
+  // Only handleDismissDiff (the "Clear highlights" button) drops it.
   function handleOutputChange(text: string) {
     setReworded(text)
-    setPreviousReworded(null)
   }
 
   function handleDismissDiff() {
@@ -116,7 +125,12 @@ function App() {
         />
       </div>
       <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
-      <SuggestionsPanel noteText={reworded} originalText={extractedText} onApply={handleApplySuggestions} />
+      <SuggestionsPanel
+        noteText={reworded}
+        originalText={extractedText}
+        noteVersion={noteVersion}
+        onApply={handleApplySuggestions}
+      />
       <OutputPanel
         status={rewordStatus}
         reworded={reworded}
