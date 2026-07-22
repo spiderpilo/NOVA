@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { openai } from '../openaiClient.js';
 import { PROGRESS_NOTE_SKELETON } from '../progressNoteSkeleton.js';
-import { FOLLOW_UP_NOTE_SKELETON } from '../followUpNoteSkeleton.js';
+import { INITIAL_NOTE_SKELETON } from '../initialNoteSkeleton.js';
 
 const router = Router();
 
@@ -27,7 +27,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'No text provided to reword.' });
   }
 
-  const skeleton = noteType === 'followUp' ? FOLLOW_UP_NOTE_SKELETON : PROGRESS_NOTE_SKELETON;
+  // PROGRESS_NOTE_SKELETON (no HPI, tracks ongoing status) is the follow-up
+  // format; INITIAL_NOTE_SKELETON (consultation-style, with HPI) is for the
+  // first PM&R encounter — the default when noteType isn't 'followUp'.
+  const skeleton = noteType === 'followUp' ? PROGRESS_NOTE_SKELETON : INITIAL_NOTE_SKELETON;
 
   try {
     const completion = await openai.chat.completions.create({
