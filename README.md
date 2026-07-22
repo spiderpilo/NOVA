@@ -1,8 +1,12 @@
 # Note Observation & Validation Assistant
 
 Import a patient progress-notes PDF, extract its text client-side, and get a
-version reworded into a standard PM&R progress note format via GPT — plus a
-check for whether anything important looks missing.
+version reworded into a standard PM&R progress note format via GPT. An AI
+chat then interviews the clinician to fill in gaps in the patient's
+functional/rehab profile, and an AI suggestions panel proposes reviewable
+additions (referrals, medications, equipment, follow-up) — the clinician
+selects what to add, and it lands in the note as their own direct plan,
+never as invented clinical fact.
 
 ## Setup
 
@@ -35,6 +39,36 @@ check for whether anything important looks missing.
   assessment/plan). Any section whose usual header/keywords aren't found is
   flagged as worth a second look — a heuristic warning, not a claim that
   content is actually missing.
+- **AI Chat** (`server/routes/chat.js`) interviews the clinician one question
+  at a time to fill in gaps, prioritizing a PM&R-specific patient profile —
+  current rehab services (PT/OT/speech frequency and progress), assistive
+  devices, functional status, prior level of function, living situation,
+  patient goals, pain's functional impact, safety, and discharge planning —
+  before falling back to generic section gaps, and skipping anything already
+  documented. A Skip button is available for questions the clinician can't
+  answer. Each answer updates the note in place via
+  `server/routes/updateNote.js`, instructed to touch only the section the
+  answer affects and preserve everything else character-for-character, so
+  the diff highlight below stays precise instead of showing incidental AI
+  rephrasing.
+- **AI Suggestions** (`server/routes/suggestions.js`) proactively generates
+  categorized, physician-reviewable suggestions — referrals, medications,
+  equipment, safety, follow-up, documentation — from the note and the
+  original source text. Medication suggestions can name a specific drug and
+  dose for a symptom clearly stated in the note (e.g. reported trouble
+  sleeping → melatonin), with guardrails: always cross-checked against the
+  note's documented allergies, never a specific dose for controlled
+  substances/anticoagulants/insulin (a generic "reassess" instead), and a
+  persistent on-screen reminder to verify against interactions and
+  renal/hepatic function before prescribing. The clinician selects which
+  suggestions to add; `server/routes/applySuggestions.js` adds only the
+  selected ones, rephrased as the clinician's own direct plan — never hedged
+  language like "consider."
+- The Reworded Output panel shows what changed after each chat answer or
+  applied suggestion as an editable, highlighted diff — new content is
+  highlighted in green, and you can type directly into it without losing the
+  highlighting. A "Clear highlights" button drops back to a plain editable
+  view.
 - The API server requires HTTP Basic Auth on every request (`server/authMiddleware.js`)
   and writes an access-only audit trail to `server/logs/audit.log`
   (`server/auditLog.js`) — timestamp, method, path, status, user, IP. The
@@ -77,9 +111,9 @@ isn't persistent between invocations.
 
 ## Privacy / compliance note
 
-This app sends extracted patient note text to OpenAI's API for rewording.
-Before using this with real patient data in any regulated context, you still
-need, at minimum:
+This app sends extracted patient note text to OpenAI's API — for rewording,
+the chat interview, and generating/applying suggestions. Before using this
+with real patient data in any regulated context, you still need, at minimum:
 
 - **A signed Business Associate Agreement (BAA) with OpenAI**, with zero data
   retention enabled on your account. This is a legal/procurement step handled
