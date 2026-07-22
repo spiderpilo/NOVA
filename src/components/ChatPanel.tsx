@@ -17,6 +17,17 @@ function ChatPanel({ extractedText, currentNoteText, onAnswer }: Props) {
   const [done, setDone] = useState(false)
   const startedForRef = useRef<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Grows the answer box to fit what's typed (up to the CSS max-height,
+  // after which it scrolls internally) — covers both the user typing and
+  // the box clearing itself after send/skip.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [input])
 
   // Starts the interview once, the first time a reworded note is available
   // for this imported PDF — not on every later regeneration of that note.
@@ -109,6 +120,7 @@ function ChatPanel({ extractedText, currentNoteText, onAnswer }: Props) {
       {!idle && !done && (
         <div className="chat-input-row">
           <textarea
+            ref={inputRef}
             className="chat-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
