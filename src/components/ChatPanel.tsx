@@ -118,7 +118,7 @@ function ChatPanel({ extractedText, currentNoteText, onAnswer }: Props) {
         )}
       </div>
       {!idle && !done && (
-        <div className="chat-input-row">
+        <div className="chat-input-area">
           <textarea
             ref={inputRef}
             className="chat-input"
@@ -134,22 +134,24 @@ function ChatPanel({ extractedText, currentNoteText, onAnswer }: Props) {
             rows={1}
             disabled={loading || messages.length === 0}
           />
-          <button
-            type="button"
-            className="btn btn-sm chat-skip-button"
-            onClick={() => void handleSkip()}
-            disabled={loading || messages.length === 0}
-          >
-            Skip
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => void handleSend()}
-            disabled={loading || !input.trim() || messages.length === 0}
-          >
-            Send
-          </button>
+          <div className="chat-input-actions">
+            <button
+              type="button"
+              className="btn btn-sm chat-skip-button"
+              onClick={() => void handleSkip()}
+              disabled={loading || messages.length === 0}
+            >
+              Skip
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => void handleSend()}
+              disabled={loading || !input.trim() || messages.length === 0}
+            >
+              Send
+            </button>
+          </div>
         </div>
       )}
     </section>

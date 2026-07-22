@@ -54,16 +54,23 @@
   font-size: 14px;
 }
 
-.chat-input-row {
+.chat-input-area {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: flex-end;
   flex: 0 0 auto;
   margin-top: 12px;
 }
 
+.chat-input-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .chat-input {
-  flex: 1 1 auto;
+  box-sizing: border-box;
+  width: 100%;
   resize: none;
   border: 1px solid var(--border);
   border-radius: var(--radius);
