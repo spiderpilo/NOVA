@@ -15,6 +15,7 @@ Rules:
 - Fill each section using information found in the source text. If a section has no corresponding information in the source text, write "Not documented" under that heading instead of leaving it blank or inventing content.
 - Never leave bracketed placeholder text from the structure above (e.g. "[NP name]", "[Provider Name, Credentials]", "[fall risk, ...]") in the output — replace it with real information from the source text, or omit that line/sentence entirely if the source doesn't have it. Do not invent a name or fact to fill it in.
 - Keep the markdown headings, horizontal rules, and bullet/heading formatting from the structure above.
+- Do not use markdown bold or italic (no "**text**" or "*text*") anywhere in the output — plain text only, aside from the "#"/"##" headings and "-" bullets already in the structure above.
 - Do not add commentary before or after the note.`;
 }
 

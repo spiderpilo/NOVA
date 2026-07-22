@@ -15,6 +15,7 @@ Critical rules:
 - Preserve all clinical facts, measurements, medication names/dosages, vitals, and dates exactly as they already appear elsewhere in the note.
 - Do not invent, infer, or add any clinical information beyond what the answer states.
 - Keep the markdown headings, horizontal rules, and formatting exactly as in the current note.
+- Do not use markdown bold or italic (no "**text**" or "*text*") anywhere in the note — plain text only, aside from the "#"/"##" headings and "-" bullets already in the note's structure.
 - Output only the updated note — no commentary before or after.`;
 
 // Request:  { noteText: string, question: string, answer: string }

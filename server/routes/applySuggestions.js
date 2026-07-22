@@ -19,6 +19,7 @@ Critical rules:
 - Do NOT rephrase, restructure, or reword any part of the note that isn't directly affected by these additions. Preserve the exact existing wording everywhere else, character for character.
 - Only add the selected items below — do not add anything not in the list, and do not invent additional clinical information beyond what each item states.
 - Keep the markdown headings, horizontal rules, and formatting exactly as in the current note.
+- Do not use markdown bold or italic (no "**text**" or "*text*") anywhere in the note — plain text only, aside from the "#"/"##" headings and "-" bullets already in the note's structure.
 - Output only the updated note — no commentary before or after.`;
 
 // Request:  { noteText: string, suggestions: string[] }

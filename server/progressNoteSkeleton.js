@@ -3,12 +3,12 @@ export const PROGRESS_NOTE_SKELETON = `# PHYSICAL MEDICINE AND REHABILITATION PR
 ---
 
 ## SUBJECTIVE
-*[Patient status, symptoms reported, nursing updates since last evaluation]*
+[Patient status, symptoms reported, nursing updates since last evaluation]
 
 ---
 
 ## PAST MEDICAL/SURGICAL HISTORY
-*[See file for reference / or list]*
+[See file for reference / or list]
 
 ---
 
@@ -20,55 +20,55 @@ export const PROGRESS_NOTE_SKELETON = `# PHYSICAL MEDICINE AND REHABILITATION PR
 ---
 
 ## FAMILY HISTORY
-*[Contributory findings or "Non-contributory"]*
+[Contributory findings or "Non-contributory"]
 
 ---
 
 ## ALLERGIES
-*[List or NKDA]*
+[List or NKDA]
 
 ---
 
 ## MEDICATIONS
-*[Refer to medication list on file, or list current meds]*
+[Refer to medication list on file, or list current meds]
 
 ---
 
 ## PHYSICAL EXAM
-- **Gen:**
-- **HEENT:**
-- **Cardio:**
-- **Pulm:**
-- **Abd:**
-- **Mental Status:**
-- **Neuro:**
-- **Tone:**
+- Gen:
+- HEENT:
+- Cardio:
+- Pulm:
+- Abd:
+- Mental Status:
+- Neuro:
+- Tone:
 
-*[Add/remove systems as needed per exam performed]*
+[Add/remove systems as needed per exam performed]
 
 ---
 
 ## LABS & DIAGNOSTIC STUDIES
-*[Relevant labs/imaging reviewed]*
+[Relevant labs/imaging reviewed]
 
 ---
 
 ## ASSESSMENT/PLAN
 
-**[Patient demographic summary sentence — age, sex, relevant PMH, admission reason, consult reason]**
+[Patient demographic summary sentence — age, sex, relevant PMH, admission reason, consult reason]
 
 ### Problem List (tag format: \`#\`)
-*[Each problem below its own heading, followed by dashed bullet plan items]*
+[Each problem below its own heading, followed by dashed bullet plan items]
 
-**# [Problem 1]**
--
--
-
-**# [Next Problem Category]**
+# [Problem 1]
 -
 -
 
-*[Repeat problem/plan blocks as needed — common recurring categories seen in this note type:]*
+# [Next Problem Category]
+-
+-
+
+[Repeat problem/plan blocks as needed — common recurring categories seen in this note type:]
 - Impaired mobility & self-care / deconditioning
 - Pain management
 - Bowel & bladder program
@@ -77,9 +77,9 @@ export const PROGRESS_NOTE_SKELETON = `# PHYSICAL MEDICINE AND REHABILITATION PR
 - DVT PPX
 - Diet/Nutrition
 
-*[Optional counseling/education attestation line, e.g. medication or care plan discussion]*
+[Optional counseling/education attestation line, e.g. medication or care plan discussion]
 
 ---
 
-**[Provider Name, Credentials]**
-**Physical Medicine and Rehabilitation**`;
+[Provider Name, Credentials]
+Physical Medicine and Rehabilitation`;
