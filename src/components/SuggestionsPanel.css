@@ -9,6 +9,8 @@
 
 .suggestions-header h2 {
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .suggestions-content {
