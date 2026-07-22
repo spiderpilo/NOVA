@@ -3,6 +3,23 @@ import './ChatPanel.css'
 import { ApiError, sendChatMessage } from '../lib/apiClient'
 import type { ChatHistoryMessage } from '../lib/types'
 
+const CHAT_STORAGE_KEY = 'nova:chat'
+
+interface PersistedChat {
+  forExtractedText: string
+  messages: ChatHistoryMessage[]
+  done: boolean
+}
+
+function loadPersistedChat(): PersistedChat | null {
+  try {
+    const raw = sessionStorage.getItem(CHAT_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as PersistedChat) : null
+  } catch {
+    return null
+  }
+}
+
 interface Props {
   extractedText: string | null
   currentNoteText: string | null
@@ -10,14 +27,28 @@ interface Props {
 }
 
 function ChatPanel({ extractedText, currentNoteText, onAnswer }: Props) {
-  const [messages, setMessages] = useState<ChatHistoryMessage[]>([])
+  const persisted = useRef(loadPersistedChat()).current
+  const matchesPersisted = persisted !== null && persisted.forExtractedText === extractedText
+
+  const [messages, setMessages] = useState<ChatHistoryMessage[]>(matchesPersisted ? persisted.messages : [])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState(false)
-  const startedForRef = useRef<string | null>(null)
+  const [done, setDone] = useState(matchesPersisted ? persisted.done : false)
+  const startedForRef = useRef<string | null>(matchesPersisted ? extractedText : null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    try {
+      if (extractedText) {
+        const toStore: PersistedChat = { forExtractedText: extractedText, messages, done }
+        sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toStore))
+      }
+    } catch {
+      // autosave is best-effort — sessionStorage may be unavailable
+    }
+  }, [extractedText, messages, done])
 
   // Grows the answer box to fit what's typed (up to the CSS max-height,
   // after which it scrolls internally) — covers both the user typing and

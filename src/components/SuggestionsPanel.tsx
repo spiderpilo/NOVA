@@ -3,6 +3,23 @@ import './SuggestionsPanel.css'
 import { ApiError, getSuggestions } from '../lib/apiClient'
 import type { Suggestion } from '../lib/types'
 
+const SUGGESTIONS_STORAGE_KEY = 'nova:suggestions'
+
+interface PersistedSuggestions {
+  forExtractedText: string
+  suggestions: Suggestion[]
+  selected: Suggestion[]
+}
+
+function loadPersistedSuggestions(): PersistedSuggestions | null {
+  try {
+    const raw = sessionStorage.getItem(SUGGESTIONS_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as PersistedSuggestions) : null
+  } catch {
+    return null
+  }
+}
+
 interface Props {
   noteText: string | null
   originalText: string | null
@@ -11,11 +28,29 @@ interface Props {
 }
 
 function SuggestionsPanel({ noteText, originalText, noteVersion, onApply }: Props) {
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-  const [selected, setSelected] = useState<Suggestion[]>([])
+  const persisted = useRef(loadPersistedSuggestions()).current
+  const matchesPersisted = persisted !== null && persisted.forExtractedText === originalText
+
+  const [suggestions, setSuggestions] = useState<Suggestion[]>(matchesPersisted ? persisted.suggestions : [])
+  const [selected, setSelected] = useState<Suggestion[]>(matchesPersisted ? persisted.selected : [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const startedForRef = useRef<number | null>(null)
+  // Suppress the auto-refresh effect from immediately overwriting rehydrated
+  // suggestions — noteVersion resets to 0 on every fresh mount, so matching
+  // it here (rather than trying to persist/restore the counter itself) is
+  // enough to prevent a spurious refetch right after reload.
+  const startedForRef = useRef<number | null>(matchesPersisted ? noteVersion : null)
+
+  useEffect(() => {
+    try {
+      if (originalText) {
+        const toStore: PersistedSuggestions = { forExtractedText: originalText, suggestions, selected }
+        sessionStorage.setItem(SUGGESTIONS_STORAGE_KEY, JSON.stringify(toStore))
+      }
+    } catch {
+      // autosave is best-effort — sessionStorage may be unavailable
+    }
+  }, [originalText, suggestions, selected])
 
   // Refreshes suggestions after each AI-driven note change (reword, chat
   // answer, applied suggestion) — keyed on noteVersion rather than noteText

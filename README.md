@@ -132,8 +132,12 @@ with real patient data in any regulated context, you still need, at minimum:
   breach notification procedures, and a retention/disposal policy.
 
 The app itself never logs extracted text or model output (only the access
-metadata described above), and does not persist note content anywhere beyond
-browser memory for the current session.
+metadata described above). The note text, chat history, and suggestions are
+autosaved to the browser's `sessionStorage` so a refresh doesn't lose your
+work — this never leaves the browser, is cleared when the tab closes, and
+isn't sent to the server, but it does mean the current note sits in the
+browser's local storage for the duration of the tab being open. Nothing is
+persisted anywhere beyond that.
 
 ## Scope
 

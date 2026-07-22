@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
@@ -9,13 +9,32 @@ import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './
 import { checkCompletenessLocal } from './lib/completenessCheck'
 import type { NoteType } from './lib/types'
 
+const SESSION_STORAGE_KEY = 'nova:session'
+
+interface PersistedSession {
+  extractedText: string | null
+  reworded: string | null
+  noteType: NoteType
+}
+
+function loadPersistedSession(): PersistedSession | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as PersistedSession) : null
+  } catch {
+    return null
+  }
+}
+
 function App() {
-  const [rewordStatus, setRewordStatus] = useState<RewordStatus>('idle')
-  const [reworded, setReworded] = useState<string | null>(null)
+  const persisted = useRef(loadPersistedSession()).current
+
+  const [rewordStatus, setRewordStatus] = useState<RewordStatus>(persisted?.reworded ? 'done' : 'idle')
+  const [reworded, setReworded] = useState<string | null>(persisted?.reworded ?? null)
   const [previousReworded, setPreviousReworded] = useState<string | null>(null)
   const [rewordError, setRewordError] = useState<string | null>(null)
-  const [extractedText, setExtractedText] = useState<string | null>(null)
-  const [noteType, setNoteType] = useState<NoteType>('initial')
+  const [extractedText, setExtractedText] = useState<string | null>(persisted?.extractedText ?? null)
+  const [noteType, setNoteType] = useState<NoteType>(persisted?.noteType ?? 'initial')
 
   const [completenessStatus, setCompletenessStatus] = useState<CompletenessStatus>('idle')
   const [verdict, setVerdict] = useState<string | null>(null)
@@ -27,6 +46,32 @@ function App() {
   // reworded itself changes on every keystroke too.
   const [noteVersion, setNoteVersion] = useState(0)
 
+  // Whatever reword-affecting operation most recently ran — retry re-runs
+  // exactly that, instead of always falling back to a full reword from the
+  // original PDF text and silently discarding chat/suggestion progress.
+  const lastOperationRef = useRef<(() => void) | null>(null)
+
+  // Restore the completeness check for a rehydrated note on first mount —
+  // it's cheap to recompute locally, so it isn't part of persisted state.
+  useEffect(() => {
+    if (reworded) runCompletenessCheck(reworded)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    try {
+      if (extractedText || reworded) {
+        const toStore: PersistedSession = { extractedText, reworded, noteType }
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(toStore))
+      } else {
+        sessionStorage.removeItem(SESSION_STORAGE_KEY)
+      }
+    } catch {
+      // sessionStorage can be unavailable (private browsing, quota) —
+      // autosave is a nice-to-have, not something worth surfacing an error for.
+    }
+  }, [extractedText, reworded, noteType])
+
   function applyRewordResult(result: string, baseline: string | null) {
     setPreviousReworded(baseline)
     setReworded(result)
@@ -36,6 +81,7 @@ function App() {
   }
 
   async function runReword(text: string) {
+    lastOperationRef.current = () => runReword(text)
     setRewordStatus('loading')
     setRewordError(null)
     try {
@@ -54,6 +100,7 @@ function App() {
   async function handleChatAnswer(question: string, answer: string) {
     if (!reworded) return
     const baseline = reworded
+    lastOperationRef.current = () => handleChatAnswer(question, answer)
     setRewordStatus('loading')
     setRewordError(null)
     try {
@@ -71,6 +118,7 @@ function App() {
   async function handleApplySuggestions(selected: string[]) {
     if (!reworded) return
     const baseline = reworded
+    lastOperationRef.current = () => handleApplySuggestions(selected)
     setRewordStatus('loading')
     setRewordError(null)
     try {
@@ -96,7 +144,7 @@ function App() {
   }
 
   function handleRetryReword() {
-    if (extractedText) void runReword(extractedText)
+    lastOperationRef.current?.()
   }
 
   // Deliberately doesn't clear previousReworded — the diff highlighting
