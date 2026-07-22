@@ -1,6 +1,9 @@
+export type NoteType = 'initial' | 'followUp'
+
 // POST /api/reword
 export interface RewordRequest {
   text: string
+  noteType: NoteType
 }
 export interface RewordResponse {
   reworded: string

@@ -7,6 +7,7 @@ import OutputPanel, { type RewordStatus } from './components/OutputPanel'
 import SuggestionsPanel from './components/SuggestionsPanel'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
+import type { NoteType } from './lib/types'
 
 function App() {
   const [rewordStatus, setRewordStatus] = useState<RewordStatus>('idle')
@@ -14,6 +15,7 @@ function App() {
   const [previousReworded, setPreviousReworded] = useState<string | null>(null)
   const [rewordError, setRewordError] = useState<string | null>(null)
   const [extractedText, setExtractedText] = useState<string | null>(null)
+  const [noteType, setNoteType] = useState<NoteType>('initial')
 
   const [completenessStatus, setCompletenessStatus] = useState<CompletenessStatus>('idle')
   const [verdict, setVerdict] = useState<string | null>(null)
@@ -37,7 +39,7 @@ function App() {
     setRewordStatus('loading')
     setRewordError(null)
     try {
-      const result = await rewordText(text)
+      const result = await rewordText(text, noteType)
       applyRewordResult(result, null)
     } catch (err) {
       setRewordError(err instanceof ApiError ? err.message : 'Failed to reword text.')
@@ -116,7 +118,7 @@ function App() {
   return (
     <div className="app-shell">
       <div className="left-column">
-        <ImportPdfPanel onExtracted={handleExtracted} />
+        <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
         <CompletenessPanel
           status={completenessStatus}
           verdict={verdict}

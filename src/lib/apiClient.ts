@@ -3,6 +3,7 @@ import type {
   ApplySuggestionsResponse,
   ChatHistoryMessage,
   ChatResponse,
+  NoteType,
   RewordResponse,
   Suggestion,
   SuggestionsResponse,
@@ -33,8 +34,8 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   return data as T
 }
 
-export function rewordText(text: string): Promise<string> {
-  return postJson<RewordResponse>('/api/reword', { text }).then((r) => r.reworded)
+export function rewordText(text: string, noteType: NoteType): Promise<string> {
+  return postJson<RewordResponse>('/api/reword', { text, noteType }).then((r) => r.reworded)
 }
 
 export function sendChatMessage(noteText: string, history: ChatHistoryMessage[]): Promise<string> {
