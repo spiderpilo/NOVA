@@ -1,5 +1,7 @@
 export type NoteType = 'initial' | 'followUp'
 
+export type Role = 'provider' | 'scribe'
+
 // POST /api/reword
 export interface RewordRequest {
   text: string

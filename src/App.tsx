@@ -4,10 +4,11 @@ import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
+import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
-import type { NoteType } from './lib/types'
+import type { NoteType, Role } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
 
@@ -28,6 +29,12 @@ function loadPersistedSession(): PersistedSession | null {
 
 function App() {
   const persisted = useRef(loadPersistedSession()).current
+
+  // Not persisted — always starts unset on a fresh load, so the role
+  // picker is an explicit choice every time rather than silently carrying
+  // over to whoever opens the tab next (e.g. a scribe-to-provider handoff
+  // on a shared workstation).
+  const [role, setRole] = useState<Role | null>(null)
 
   const [rewordStatus, setRewordStatus] = useState<RewordStatus>(persisted?.reworded ? 'done' : 'idle')
   const [reworded, setReworded] = useState<string | null>(persisted?.reworded ?? null)
@@ -163,8 +170,15 @@ function App() {
     if (text) runCompletenessCheck(text)
   }
 
+  if (!role) {
+    return <RoleSelectScreen onSelect={setRole} />
+  }
+
   return (
     <div className="app-shell">
+      <button type="button" className="btn btn-sm role-switch-button" onClick={() => setRole(null)}>
+        Switch role
+      </button>
       <div className="left-column">
         <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
         <CompletenessPanel
@@ -174,13 +188,17 @@ function App() {
           onRecheck={handleRecheckCompleteness}
         />
       </div>
-      <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
-      <SuggestionsPanel
-        noteText={reworded}
-        originalText={extractedText}
-        noteVersion={noteVersion}
-        onApply={handleApplySuggestions}
-      />
+      {role === 'scribe' && (
+        <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
+      )}
+      {role === 'provider' && (
+        <SuggestionsPanel
+          noteText={reworded}
+          originalText={extractedText}
+          noteVersion={noteVersion}
+          onApply={handleApplySuggestions}
+        />
+      )}
       <OutputPanel
         status={rewordStatus}
         reworded={reworded}
