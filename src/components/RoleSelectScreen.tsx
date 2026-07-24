@@ -13,7 +13,7 @@ function RoleSelectScreen({ onSelect }: Props) {
         <img src={orcaLogo} alt="Orca Rehab NOVA" className="role-select-logo" />
       </div>
       <div className="role-select-intro">
-        <h1>Who's using this?</h1>
+        <h1>Select User</h1>
         <p>This determines which AI tool you'll see alongside the note.</p>
       </div>
       <div className="role-select-options">
