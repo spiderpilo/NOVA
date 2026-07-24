@@ -69,6 +69,7 @@ function ChatPanel({ extractedText, currentNoteText, onAnswer }: Props) {
     setMessages([])
     setDone(false)
     setError(null)
+    setInput('')
     void askNext([], currentNoteText)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extractedText, currentNoteText])

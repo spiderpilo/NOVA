@@ -175,39 +175,43 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <button type="button" className="btn btn-sm role-switch-button" onClick={() => setRole(null)}>
-        Switch role
-      </button>
-      <div className="left-column">
-        <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
-        <CompletenessPanel
-          status={completenessStatus}
-          verdict={verdict}
-          missingItems={missingItems}
-          onRecheck={handleRecheckCompleteness}
+    <div className="app-container">
+      <div className="app-topbar">
+        <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
+          Switch role
+        </button>
+      </div>
+      <div className="app-shell">
+        <div className="left-column">
+          <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
+          <CompletenessPanel
+            status={completenessStatus}
+            verdict={verdict}
+            missingItems={missingItems}
+            onRecheck={handleRecheckCompleteness}
+          />
+        </div>
+        {role === 'scribe' && (
+          <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
+        )}
+        {role === 'provider' && (
+          <SuggestionsPanel
+            noteText={reworded}
+            originalText={extractedText}
+            noteVersion={noteVersion}
+            onApply={handleApplySuggestions}
+          />
+        )}
+        <OutputPanel
+          status={rewordStatus}
+          reworded={reworded}
+          previousReworded={previousReworded}
+          error={rewordError}
+          onRetry={handleRetryReword}
+          onChange={handleOutputChange}
+          onDismissDiff={handleDismissDiff}
         />
       </div>
-      {role === 'scribe' && (
-        <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
-      )}
-      {role === 'provider' && (
-        <SuggestionsPanel
-          noteText={reworded}
-          originalText={extractedText}
-          noteVersion={noteVersion}
-          onApply={handleApplySuggestions}
-        />
-      )}
-      <OutputPanel
-        status={rewordStatus}
-        reworded={reworded}
-        previousReworded={previousReworded}
-        error={rewordError}
-        onRetry={handleRetryReword}
-        onChange={handleOutputChange}
-        onDismissDiff={handleDismissDiff}
-      />
     </div>
   )
 }

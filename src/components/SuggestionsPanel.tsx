@@ -40,6 +40,17 @@ function SuggestionsPanel({ noteText, originalText, noteVersion, onApply }: Prop
   // it here (rather than trying to persist/restore the counter itself) is
   // enough to prevent a spurious refetch right after reload.
   const startedForRef = useRef<number | null>(matchesPersisted ? noteVersion : null)
+  const prevOriginalTextRef = useRef(originalText)
+
+  // A genuinely new PDF (not just a regeneration of the same document) —
+  // drop any suggestions/selections left over from the previous one, so a
+  // stale selection can't get applied to an unrelated note.
+  useEffect(() => {
+    if (prevOriginalTextRef.current === originalText) return
+    prevOriginalTextRef.current = originalText
+    setSuggestions([])
+    setSelected([])
+  }, [originalText])
 
   useEffect(() => {
     try {
@@ -145,7 +156,7 @@ function SuggestionsPanel({ noteText, originalText, noteVersion, onApply }: Prop
               <p className="suggestions-placeholder">No suggestions right now.</p>
             )}
 
-            {suggestions.length > 0 && (
+            {!loading && suggestions.length > 0 && (
               <ul className="suggestions-list">
                 {suggestions.map((s, i) => (
                   <li key={i}>{renderSuggestion(s, false, () => selectSuggestion(s))}</li>
