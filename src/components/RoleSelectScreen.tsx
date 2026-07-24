@@ -10,8 +10,7 @@ function RoleSelectScreen({ onSelect }: Props) {
   return (
     <div className="role-select-screen">
       <div className="role-select-brand">
-        <img src={orcaLogo} alt="Orca Rehab" className="role-select-logo" />
-        <div className="role-select-product-name">NOVA</div>
+        <img src={orcaLogo} alt="Orca Rehab NOVA" className="role-select-logo" />
       </div>
       <div className="role-select-intro">
         <h1>Who's using this?</h1>

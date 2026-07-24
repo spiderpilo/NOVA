@@ -11,24 +11,13 @@
 
 .role-select-brand {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
 .role-select-logo {
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
   height: auto;
-  border-radius: var(--radius);
-}
-
-.role-select-product-name {
-  font-family: var(--heading);
-  font-weight: 600;
-  font-size: 20px;
-  letter-spacing: 4px;
-  color: var(--text-h);
 }
 
 .role-select-intro {
