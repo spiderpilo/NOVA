@@ -1,4 +1,5 @@
 import './RoleSelectScreen.css'
+import orcaLogo from '../assets/orca-logo.png'
 import type { Role } from '../lib/types'
 
 interface Props {
@@ -8,6 +9,10 @@ interface Props {
 function RoleSelectScreen({ onSelect }: Props) {
   return (
     <div className="role-select-screen">
+      <div className="role-select-brand">
+        <img src={orcaLogo} alt="Orca Rehab" className="role-select-logo" />
+        <div className="role-select-product-name">NOVA</div>
+      </div>
       <div className="role-select-intro">
         <h1>Who's using this?</h1>
         <p>This determines which AI tool you'll see alongside the note.</p>
