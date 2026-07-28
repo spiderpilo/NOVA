@@ -13,19 +13,26 @@ interface Props {
 function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Props) {
   const [patients, setPatients] = useState<Patient[]>(() => listPatients())
   const [newName, setNewName] = useState('')
+  // Armed by a first click on Delete; a second click on the same row
+  // actually deletes. Only one row can be armed at a time.
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   function handleCreate() {
     const name = newName.trim()
     if (!name) return
-    const patient = createPatient(name)
+    createPatient(name)
     setPatients(listPatients())
     setNewName('')
-    onSelect(patient)
   }
 
-  function handleDelete(id: string) {
+  function handleDeleteClick(id: string) {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id)
+      return
+    }
     deletePatient(id)
     setPatients(listPatients())
+    setConfirmDeleteId(null)
     onDelete(id)
   }
 
@@ -84,9 +91,28 @@ function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Prop
                     {p.signed ? 'Signed' : 'Unsigned'}
                   </span>
                 )}
-                <button type="button" className="btn btn-sm patient-list-item-delete" onClick={() => handleDelete(p.id)}>
-                  Delete
-                </button>
+                {confirmDeleteId === p.id ? (
+                  <>
+                    <button type="button" className="btn btn-sm" onClick={() => setConfirmDeleteId(null)}>
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm patient-list-item-delete-confirm"
+                      onClick={() => handleDeleteClick(p.id)}
+                    >
+                      Confirm delete
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-sm patient-list-item-delete"
+                    onClick={() => handleDeleteClick(p.id)}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </li>
           ))}

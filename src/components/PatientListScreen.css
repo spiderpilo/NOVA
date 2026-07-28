@@ -74,6 +74,7 @@
   gap: 8px;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
+  border-left: 3px solid transparent;
   border-radius: var(--radius);
   transition:
     border-color 0.18s ease,
@@ -83,19 +84,19 @@
 }
 
 .patient-list-item:hover {
-  border-color: var(--accent-border);
+  border-top-color: var(--accent-border);
+  border-right-color: var(--accent-border);
+  border-bottom-color: var(--accent-border);
   background: rgba(192, 132, 252, 0.12);
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.65);
 }
 
+/* A thin left stripe marks the currently open patient — deliberately no
+   background fill, so it doesn't compete visually with the hover tint or
+   read like a warning/error state. */
 .patient-list-item-active {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-.patient-list-item-active:hover {
-  background: var(--accent-bg);
+  border-left-color: var(--accent);
 }
 
 .patient-list-item-select {
@@ -161,4 +162,15 @@
   background: rgba(248, 113, 113, 0.15);
   color: #f87171;
   border-color: rgba(248, 113, 113, 0.5);
+}
+
+.patient-list-item-delete-confirm {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.5);
+}
+
+.patient-list-item-delete-confirm:hover {
+  background: #f87171;
+  color: #1c1d24;
 }
