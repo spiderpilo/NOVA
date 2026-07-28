@@ -36,6 +36,8 @@ export function createPatient(name: string): Patient {
     noteType: 'initial',
     extractedText: null,
     reworded: null,
+    signed: false,
+    signedAt: null,
   }
   writeAll([...readAll(), patient])
   return patient
@@ -43,7 +45,13 @@ export function createPatient(name: string): Patient {
 
 export function updatePatientNote(
   id: string,
-  data: { noteType: NoteType; extractedText: string | null; reworded: string | null },
+  data: {
+    noteType: NoteType
+    extractedText: string | null
+    reworded: string | null
+    signed: boolean
+    signedAt: number | null
+  },
 ): void {
   const patients = readAll()
   const index = patients.findIndex((p) => p.id === id)

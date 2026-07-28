@@ -12,6 +12,8 @@ export interface Patient {
   noteType: NoteType
   extractedText: string | null
   reworded: string | null
+  signed: boolean
+  signedAt: number | null
 }
 
 // POST /api/reword

@@ -39,6 +39,14 @@
   box-sizing: border-box;
 }
 
+/* Providers don't get the Import PDF / Completeness left column — they
+   only review a note the scribe already produced — so the remaining two
+   panels (Suggestions, Output) take the freed-up width instead of leaving
+   a gap. */
+.app-shell-provider {
+  grid-template-columns: minmax(300px, 1fr) 2fr;
+}
+
 .left-column {
   display: grid;
   grid-template-rows: 1fr 1fr;

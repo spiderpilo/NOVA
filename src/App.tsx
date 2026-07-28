@@ -20,6 +20,8 @@ interface PersistedSession {
   noteType: NoteType
   selectedPatientId: string | null
   selectedPatientName: string | null
+  signed: boolean
+  signedAt: number | null
 }
 
 function loadPersistedSession(): PersistedSession | null {
@@ -54,6 +56,12 @@ function App() {
   const [extractedText, setExtractedText] = useState<string | null>(persisted?.extractedText ?? null)
   const [noteType, setNoteType] = useState<NoteType>(persisted?.noteType ?? 'initial')
 
+  // A provider's signature attests to the note text as it stood at sign
+  // time — any further edit (manual or AI-applied) invalidates it, so it
+  // gets cleared automatically rather than silently going stale.
+  const [signed, setSigned] = useState(persisted?.signed ?? false)
+  const [signedAt, setSignedAt] = useState<number | null>(persisted?.signedAt ?? null)
+
   const [completenessStatus, setCompletenessStatus] = useState<CompletenessStatus>('idle')
   const [verdict, setVerdict] = useState<string | null>(null)
   const [missingItems, setMissingItems] = useState<string[]>([])
@@ -85,6 +93,8 @@ function App() {
           noteType,
           selectedPatientId,
           selectedPatientName,
+          signed,
+          signedAt,
         }
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(toStore))
       } else {
@@ -94,7 +104,7 @@ function App() {
       // sessionStorage can be unavailable (private browsing, quota) —
       // autosave is a nice-to-have, not something worth surfacing an error for.
     }
-  }, [extractedText, reworded, noteType, selectedPatientId, selectedPatientName])
+  }, [extractedText, reworded, noteType, selectedPatientId, selectedPatientName, signed, signedAt])
 
   // Mirrors the sessionStorage autosave above, but keyed to a specific
   // patient in localStorage — only runs once a patient has actually been
@@ -102,8 +112,8 @@ function App() {
   // patient tracking) is unaffected.
   useEffect(() => {
     if (!selectedPatientId) return
-    updatePatientNote(selectedPatientId, { noteType, extractedText, reworded })
-  }, [selectedPatientId, noteType, extractedText, reworded])
+    updatePatientNote(selectedPatientId, { noteType, extractedText, reworded, signed, signedAt })
+  }, [selectedPatientId, noteType, extractedText, reworded, signed, signedAt])
 
   // Loads a patient's stored note into the workspace, the same way a fresh
   // PDF import would — extractedText changing is what the Chat/Suggestions
@@ -119,6 +129,8 @@ function App() {
     setPreviousReworded(null)
     setRewordError(null)
     setRewordStatus(patient.reworded ? 'done' : 'idle')
+    setSigned(patient.signed ?? false)
+    setSignedAt(patient.signedAt ?? null)
     lastOperationRef.current = null
     setNoteVersion((v) => v + 1)
     if (patient.reworded) {
@@ -144,6 +156,8 @@ function App() {
     setCompletenessStatus('idle')
     setVerdict(null)
     setMissingItems([])
+    setSigned(false)
+    setSignedAt(null)
     setNoteVersion((v) => v + 1)
   }
 
@@ -151,8 +165,20 @@ function App() {
     setPreviousReworded(baseline)
     setReworded(result)
     setRewordStatus('done')
+    setSigned(false)
+    setSignedAt(null)
     setNoteVersion((v) => v + 1)
     runCompletenessCheck(result)
+  }
+
+  function handleSignNote() {
+    setSigned(true)
+    setSignedAt(Date.now())
+  }
+
+  function handleUnsignNote() {
+    setSigned(false)
+    setSignedAt(null)
   }
 
   async function runReword(text: string) {
@@ -227,6 +253,10 @@ function App() {
   // Only handleDismissDiff (the "Clear highlights" button) drops it.
   function handleOutputChange(text: string) {
     setReworded(text)
+    if (signed) {
+      setSigned(false)
+      setSignedAt(null)
+    }
   }
 
   function handleDismissDiff() {
@@ -268,16 +298,18 @@ function App() {
           </button>
         </div>
       </div>
-      <div className="app-shell">
-        <div className="left-column">
-          <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
-          <CompletenessPanel
-            status={completenessStatus}
-            verdict={verdict}
-            missingItems={missingItems}
-            onRecheck={handleRecheckCompleteness}
-          />
-        </div>
+      <div className={role === 'provider' ? 'app-shell app-shell-provider' : 'app-shell'}>
+        {role === 'scribe' && (
+          <div className="left-column">
+            <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
+            <CompletenessPanel
+              status={completenessStatus}
+              verdict={verdict}
+              missingItems={missingItems}
+              onRecheck={handleRecheckCompleteness}
+            />
+          </div>
+        )}
         {role === 'scribe' && (
           <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
         )}
@@ -297,6 +329,12 @@ function App() {
           onRetry={handleRetryReword}
           onChange={handleOutputChange}
           onDismissDiff={handleDismissDiff}
+          idleMessage={role === 'provider' ? 'Select a patient to review their note.' : undefined}
+          showSignOff={role === 'provider'}
+          signed={signed}
+          signedAt={signedAt}
+          onSign={handleSignNote}
+          onUnsign={handleUnsignNote}
         />
       </div>
     </div>

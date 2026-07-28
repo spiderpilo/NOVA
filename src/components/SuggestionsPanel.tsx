@@ -145,7 +145,7 @@ function SuggestionsPanel({ noteText, originalText, noteVersion, onApply }: Prop
         )}
       </div>
       <div className="panel-content suggestions-content">
-        {idle && <p className="suggestions-placeholder">Import a PDF to get AI suggestions.</p>}
+        {idle && <p className="suggestions-placeholder">Select a patient to see AI suggestions.</p>}
 
         {!idle && (
           <>
