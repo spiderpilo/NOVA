@@ -7,10 +7,10 @@ interface Props {
   activePatientId: string | null
   onSelect: (patient: Patient) => void
   onDelete: (id: string) => void
-  onBack: () => void
+  onHome: () => void
 }
 
-function PatientListScreen({ activePatientId, onSelect, onDelete, onBack }: Props) {
+function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Props) {
   const [patients, setPatients] = useState<Patient[]>(() => listPatients())
   const [newName, setNewName] = useState('')
 
@@ -33,8 +33,8 @@ function PatientListScreen({ activePatientId, onSelect, onDelete, onBack }: Prop
     <div className="patient-list-screen">
       <div className="patient-list-header">
         <h1>Patients</h1>
-        <button type="button" className="btn btn-sm" onClick={onBack}>
-          Back
+        <button type="button" className="btn btn-sm" onClick={onHome}>
+          Home
         </button>
       </div>
 

@@ -281,7 +281,10 @@ function App() {
         activePatientId={selectedPatientId}
         onSelect={handleSelectPatient}
         onDelete={handleDeletePatient}
-        onBack={() => setScreen('app')}
+        onHome={() => {
+          setRole(null)
+          setScreen('app')
+        }}
       />
     )
   }
