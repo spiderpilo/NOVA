@@ -1,12 +1,28 @@
 .role-select-screen {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.role-select-topbar {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--gap) var(--gap) 0;
+}
+
+.role-select-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 40px;
-  height: 100vh;
   padding: var(--gap);
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .role-select-brand {

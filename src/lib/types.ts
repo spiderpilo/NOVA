@@ -2,6 +2,18 @@ export type NoteType = 'initial' | 'followUp'
 
 export type Role = 'provider' | 'scribe'
 
+// Stored locally per patient (see lib/patientStore.ts) — this is a test-run
+// stand-in for real per-patient storage, not a cloud-backed record.
+export interface Patient {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+  noteType: NoteType
+  extractedText: string | null
+  reworded: string | null
+}
+
 // POST /api/reword
 export interface RewordRequest {
   text: string

@@ -12,8 +12,20 @@
 .app-topbar {
   flex: 0 0 auto;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
   padding: var(--gap) var(--gap) 0;
+}
+
+.app-topbar-patient {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.app-topbar-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .app-shell {

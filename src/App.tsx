@@ -4,11 +4,13 @@ import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
+import PatientListScreen from './components/PatientListScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
-import type { NoteType, Role } from './lib/types'
+import { updatePatientNote } from './lib/patientStore'
+import type { NoteType, Patient, Role } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
 
@@ -16,6 +18,8 @@ interface PersistedSession {
   extractedText: string | null
   reworded: string | null
   noteType: NoteType
+  selectedPatientId: string | null
+  selectedPatientName: string | null
 }
 
 function loadPersistedSession(): PersistedSession | null {
@@ -35,6 +39,13 @@ function App() {
   // over to whoever opens the tab next (e.g. a scribe-to-provider handoff
   // on a shared workstation).
   const [role, setRole] = useState<Role | null>(null)
+
+  // 'patients' overlays the picker or the workspace, whichever is current —
+  // it doesn't replace the role/workspace state underneath, so returning
+  // from it lands back where you were.
+  const [screen, setScreen] = useState<'app' | 'patients'>('app')
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
+  const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
 
   const [rewordStatus, setRewordStatus] = useState<RewordStatus>(persisted?.reworded ? 'done' : 'idle')
   const [reworded, setReworded] = useState<string | null>(persisted?.reworded ?? null)
@@ -68,7 +79,13 @@ function App() {
   useEffect(() => {
     try {
       if (extractedText || reworded) {
-        const toStore: PersistedSession = { extractedText, reworded, noteType }
+        const toStore: PersistedSession = {
+          extractedText,
+          reworded,
+          noteType,
+          selectedPatientId,
+          selectedPatientName,
+        }
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(toStore))
       } else {
         sessionStorage.removeItem(SESSION_STORAGE_KEY)
@@ -77,7 +94,58 @@ function App() {
       // sessionStorage can be unavailable (private browsing, quota) —
       // autosave is a nice-to-have, not something worth surfacing an error for.
     }
-  }, [extractedText, reworded, noteType])
+  }, [extractedText, reworded, noteType, selectedPatientId, selectedPatientName])
+
+  // Mirrors the sessionStorage autosave above, but keyed to a specific
+  // patient in localStorage — only runs once a patient has actually been
+  // selected from the Patients screen, so ad-hoc single-note use (no
+  // patient tracking) is unaffected.
+  useEffect(() => {
+    if (!selectedPatientId) return
+    updatePatientNote(selectedPatientId, { noteType, extractedText, reworded })
+  }, [selectedPatientId, noteType, extractedText, reworded])
+
+  // Loads a patient's stored note into the workspace, the same way a fresh
+  // PDF import would — extractedText changing is what the Chat/Suggestions
+  // panels already key their per-document resets off of, so switching
+  // patients naturally clears any leftover chat draft or stale suggestion
+  // selection from whoever was open before.
+  function handleSelectPatient(patient: Patient) {
+    setSelectedPatientId(patient.id)
+    setSelectedPatientName(patient.name)
+    setNoteType(patient.noteType)
+    setExtractedText(patient.extractedText)
+    setReworded(patient.reworded)
+    setPreviousReworded(null)
+    setRewordError(null)
+    setRewordStatus(patient.reworded ? 'done' : 'idle')
+    lastOperationRef.current = null
+    setNoteVersion((v) => v + 1)
+    if (patient.reworded) {
+      runCompletenessCheck(patient.reworded)
+    } else {
+      setCompletenessStatus('idle')
+      setVerdict(null)
+      setMissingItems([])
+    }
+    setScreen('app')
+  }
+
+  function handleDeletePatient(id: string) {
+    if (id !== selectedPatientId) return
+    setSelectedPatientId(null)
+    setSelectedPatientName(null)
+    setNoteType('initial')
+    setExtractedText(null)
+    setReworded(null)
+    setPreviousReworded(null)
+    setRewordError(null)
+    setRewordStatus('idle')
+    setCompletenessStatus('idle')
+    setVerdict(null)
+    setMissingItems([])
+    setNoteVersion((v) => v + 1)
+  }
 
   function applyRewordResult(result: string, baseline: string | null) {
     setPreviousReworded(baseline)
@@ -170,16 +238,35 @@ function App() {
     if (text) runCompletenessCheck(text)
   }
 
+  if (screen === 'patients') {
+    return (
+      <PatientListScreen
+        activePatientId={selectedPatientId}
+        onSelect={handleSelectPatient}
+        onDelete={handleDeletePatient}
+        onBack={() => setScreen('app')}
+      />
+    )
+  }
+
   if (!role) {
-    return <RoleSelectScreen onSelect={setRole} />
+    return <RoleSelectScreen onSelect={setRole} onOpenPatients={() => setScreen('patients')} />
   }
 
   return (
     <div className="app-container">
       <div className="app-topbar">
-        <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
-          Switch role
-        </button>
+        <span className="app-topbar-patient">
+          {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
+        </span>
+        <div className="app-topbar-actions">
+          <button type="button" className="btn btn-sm" onClick={() => setScreen('patients')}>
+            Patients
+          </button>
+          <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
+            Switch role
+          </button>
+        </div>
       </div>
       <div className="app-shell">
         <div className="left-column">
