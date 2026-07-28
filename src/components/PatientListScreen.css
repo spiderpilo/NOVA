@@ -41,6 +41,7 @@
   padding: 8px 12px;
   color: var(--text-h);
   font: inherit;
+  transition: border-color 0.15s ease;
 }
 
 .patient-list-new input:focus {
@@ -51,6 +52,10 @@
 .patient-list-empty {
   color: var(--text);
   font-size: 14px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px 16px;
 }
 
 .patient-list {
@@ -70,11 +75,27 @@
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.patient-list-item:hover {
+  border-color: var(--accent-border);
+  background: rgba(192, 132, 252, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.65);
 }
 
 .patient-list-item-active {
   border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.patient-list-item-active:hover {
+  background: var(--accent-bg);
 }
 
 .patient-list-item-select {
@@ -127,4 +148,17 @@
   align-items: center;
   gap: 8px;
   margin-right: 12px;
+}
+
+.patient-list-item-delete {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.patient-list-item-delete:hover {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.5);
 }
