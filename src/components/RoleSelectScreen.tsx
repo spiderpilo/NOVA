@@ -10,11 +10,6 @@ interface Props {
 function RoleSelectScreen({ onSelect, onOpenUploadTool }: Props) {
   return (
     <div className="role-select-screen">
-      <div className="role-select-topbar">
-        <button type="button" className="btn btn-sm" onClick={onOpenUploadTool}>
-          Upload Tool
-        </button>
-      </div>
       <div className="role-select-content">
         <div className="role-select-brand">
           <img src={orcaLogo} alt="Orca Rehab NOVA" className="role-select-logo" />
@@ -34,6 +29,10 @@ function RoleSelectScreen({ onSelect, onOpenUploadTool }: Props) {
           <button type="button" className="role-select-card" onClick={() => onSelect('scribe')}>
             <h2>Scribe</h2>
             <p>Use the guided AI interview to fill in the note by answering questions about the patient.</p>
+          </button>
+          <button type="button" className="role-select-card" onClick={onOpenUploadTool}>
+            <h2>Upload Tool</h2>
+            <p>Download signed notes as PDFs, ready to upload into PCC.</p>
           </button>
         </div>
       </div>

@@ -5,13 +5,6 @@
   box-sizing: border-box;
 }
 
-.role-select-topbar {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--gap) var(--gap) 0;
-}
-
 .role-select-content {
   flex: 1 1 auto;
   min-height: 0;
@@ -59,7 +52,7 @@
   justify-content: center;
   gap: var(--gap);
   width: 100%;
-  max-width: 720px;
+  max-width: 960px;
 }
 
 .role-select-card {
