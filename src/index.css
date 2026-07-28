@@ -93,20 +93,19 @@ button {
   font-size: 13px;
 }
 
-/* A translucent, blurred overlay marking a row as already uploaded —
-   shared between the Patients screen and the Upload Tool so the same
-   patient reads consistently no matter which list it's shown in. The row
-   underneath stays visible (just hazy) rather than being hidden outright,
-   and pointer-events: none keeps the row's own buttons clickable. */
+/* A translucent overlay marking a row as already uploaded — shared between
+   the Patients screen and the Upload Tool so the same patient reads
+   consistently no matter which list it's shown in. Deliberately no blur —
+   the name and Delete button underneath need to stay legible, this is just
+   a light haze plus the "Uploaded" label, not a way to hide the row.
+   pointer-events: none keeps the row's own buttons clickable. */
 .uploaded-fog {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(28, 29, 36, 0.55);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(28, 29, 36, 0.28);
   border-radius: var(--radius);
   pointer-events: none;
 }
