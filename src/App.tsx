@@ -304,7 +304,7 @@ function App() {
             Patients
           </button>
           <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
-            Switch role
+            Home
           </button>
         </div>
       </div>
