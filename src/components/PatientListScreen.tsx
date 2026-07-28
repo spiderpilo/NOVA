@@ -76,7 +76,14 @@ function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Prop
               <button type="button" className="patient-list-item-select" onClick={() => onSelect(p)}>
                 <span className="patient-list-item-name">{p.name}</span>
                 <span className="patient-list-item-meta">
-                  {p.reworded ? 'Note in progress' : 'No note yet'} · Updated {new Date(p.updatedAt).toLocaleString()}
+                  <span
+                    className={
+                      p.reworded ? 'patient-list-item-note-status patient-list-item-note-status-has-note' : 'patient-list-item-note-status'
+                    }
+                  >
+                    {p.reworded ? 'Note in progress' : 'No note yet'}
+                  </span>{' '}
+                  · Updated {new Date(p.updatedAt).toLocaleString()}
                 </span>
               </button>
               <div className="patient-list-item-actions">
