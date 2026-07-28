@@ -14,6 +14,8 @@ export interface Patient {
   reworded: string | null
   signed: boolean
   signedAt: number | null
+  uploaded: boolean
+  uploadedAt: number | null
 }
 
 // POST /api/reword

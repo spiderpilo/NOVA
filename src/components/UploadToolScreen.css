@@ -1,0 +1,77 @@
+.upload-tool-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-width: 640px;
+  margin: 0 auto;
+  height: 100vh;
+  padding: 40px var(--gap);
+  box-sizing: border-box;
+}
+
+.upload-tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upload-tool-header h1 {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 28px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.upload-tool-note {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.upload-tool-empty {
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px 16px;
+}
+
+.upload-tool-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.upload-tool-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+
+.upload-tool-item-info {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.upload-tool-item-name {
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.upload-tool-item-meta {
+  color: var(--text);
+  font-size: 12px;
+}

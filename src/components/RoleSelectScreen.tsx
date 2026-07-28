@@ -4,11 +4,17 @@ import type { Role } from '../lib/types'
 
 interface Props {
   onSelect: (role: Role) => void
+  onOpenUploadTool: () => void
 }
 
-function RoleSelectScreen({ onSelect }: Props) {
+function RoleSelectScreen({ onSelect, onOpenUploadTool }: Props) {
   return (
     <div className="role-select-screen">
+      <div className="role-select-topbar">
+        <button type="button" className="btn btn-sm" onClick={onOpenUploadTool}>
+          Upload Tool
+        </button>
+      </div>
       <div className="role-select-content">
         <div className="role-select-brand">
           <img src={orcaLogo} alt="Orca Rehab NOVA" className="role-select-logo" />

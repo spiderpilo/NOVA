@@ -38,6 +38,8 @@ export function createPatient(name: string): Patient {
     reworded: null,
     signed: false,
     signedAt: null,
+    uploaded: false,
+    uploadedAt: null,
   }
   writeAll([...readAll(), patient])
   return patient
@@ -62,4 +64,15 @@ export function updatePatientNote(
 
 export function deletePatient(id: string): void {
   writeAll(readAll().filter((p) => p.id !== id))
+}
+
+// Marks a note as pulled into a PDF for manual upload to PCC — doesn't
+// touch the note content itself, just the upload status shown across the
+// patient list screens.
+export function markPatientUploaded(id: string): void {
+  const patients = readAll()
+  const index = patients.findIndex((p) => p.id === id)
+  if (index === -1) return
+  patients[index] = { ...patients[index], uploaded: true, uploadedAt: Date.now() }
+  writeAll(patients)
 }

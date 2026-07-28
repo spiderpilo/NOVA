@@ -69,6 +69,7 @@
 }
 
 .patient-list-item {
+  position: relative;
   display: flex;
   align-items: stretch;
   gap: 8px;

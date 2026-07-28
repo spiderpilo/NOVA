@@ -121,6 +121,11 @@ function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Prop
                   </button>
                 )}
               </div>
+              {p.uploaded && (
+                <div className="uploaded-fog">
+                  <span className="uploaded-fog-label">Uploaded</span>
+                </div>
+              )}
             </li>
           ))}
         </ul>

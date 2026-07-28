@@ -7,6 +7,7 @@ import OutputPanel, { type RewordStatus } from './components/OutputPanel'
 import PatientListScreen from './components/PatientListScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
+import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
 import { updatePatientNote } from './lib/patientStore'
@@ -42,10 +43,10 @@ function App() {
   // on a shared workstation).
   const [role, setRole] = useState<Role | null>(null)
 
-  // 'patients' overlays the picker or the workspace, whichever is current —
-  // it doesn't replace the role/workspace state underneath, so returning
-  // from it lands back where you were.
-  const [screen, setScreen] = useState<'app' | 'patients'>('app')
+  // 'patients'/'upload' overlay the picker or the workspace, whichever is
+  // current — they don't replace the role/workspace state underneath, so
+  // returning from either lands back where you were.
+  const [screen, setScreen] = useState<'app' | 'patients' | 'upload'>('app')
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
 
@@ -289,8 +290,12 @@ function App() {
     )
   }
 
+  if (screen === 'upload') {
+    return <UploadToolScreen onHome={() => setScreen('app')} />
+  }
+
   if (!role) {
-    return <RoleSelectScreen onSelect={handleChooseRole} />
+    return <RoleSelectScreen onSelect={handleChooseRole} onOpenUploadTool={() => setScreen('upload')} />
   }
 
   return (
