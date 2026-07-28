@@ -67,27 +67,27 @@ function PatientListScreen({ activePatientId, onSelect, onDelete, onBack }: Prop
               className={p.id === activePatientId ? 'patient-list-item patient-list-item-active' : 'patient-list-item'}
             >
               <button type="button" className="patient-list-item-select" onClick={() => onSelect(p)}>
-                <span className="patient-list-item-name-row">
-                  <span className="patient-list-item-name">{p.name}</span>
-                  {p.reworded && (
-                    <span
-                      className={
-                        p.signed
-                          ? 'patient-list-item-status patient-list-item-status-signed'
-                          : 'patient-list-item-status patient-list-item-status-unsigned'
-                      }
-                    >
-                      {p.signed ? 'Signed' : 'Unsigned'}
-                    </span>
-                  )}
-                </span>
+                <span className="patient-list-item-name">{p.name}</span>
                 <span className="patient-list-item-meta">
                   {p.reworded ? 'Note in progress' : 'No note yet'} · Updated {new Date(p.updatedAt).toLocaleString()}
                 </span>
               </button>
-              <button type="button" className="btn btn-sm patient-list-item-delete" onClick={() => handleDelete(p.id)}>
-                Delete
-              </button>
+              <div className="patient-list-item-actions">
+                {p.reworded && (
+                  <span
+                    className={
+                      p.signed
+                        ? 'patient-list-item-status patient-list-item-status-signed'
+                        : 'patient-list-item-status patient-list-item-status-unsigned'
+                    }
+                  >
+                    {p.signed ? 'Signed' : 'Unsigned'}
+                  </span>
+                )}
+                <button type="button" className="btn btn-sm patient-list-item-delete" onClick={() => handleDelete(p.id)}>
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>

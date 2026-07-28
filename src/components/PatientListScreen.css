@@ -92,12 +92,6 @@
   padding: 12px 16px;
 }
 
-.patient-list-item-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .patient-list-item-name {
   color: var(--text-h);
   font-size: 15px;
@@ -127,8 +121,10 @@
   font-size: 12px;
 }
 
-.patient-list-item-delete {
+.patient-list-item-actions {
   flex: 0 0 auto;
-  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-right: 12px;
 }

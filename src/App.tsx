@@ -268,6 +268,13 @@ function App() {
     if (text) runCompletenessCheck(text)
   }
 
+  // Picking a role immediately asks "for which patient" — the patient list
+  // comes up next rather than landing in an empty workspace.
+  function handleChooseRole(chosenRole: Role) {
+    setRole(chosenRole)
+    setScreen('patients')
+  }
+
   if (screen === 'patients') {
     return (
       <PatientListScreen
@@ -280,7 +287,7 @@ function App() {
   }
 
   if (!role) {
-    return <RoleSelectScreen onSelect={setRole} onOpenPatients={() => setScreen('patients')} />
+    return <RoleSelectScreen onSelect={handleChooseRole} />
   }
 
   return (

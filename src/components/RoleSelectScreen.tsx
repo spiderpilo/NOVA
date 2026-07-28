@@ -4,17 +4,11 @@ import type { Role } from '../lib/types'
 
 interface Props {
   onSelect: (role: Role) => void
-  onOpenPatients: () => void
 }
 
-function RoleSelectScreen({ onSelect, onOpenPatients }: Props) {
+function RoleSelectScreen({ onSelect }: Props) {
   return (
     <div className="role-select-screen">
-      <div className="role-select-topbar">
-        <button type="button" className="btn btn-sm" onClick={onOpenPatients}>
-          Patients
-        </button>
-      </div>
       <div className="role-select-content">
         <div className="role-select-brand">
           <img src={orcaLogo} alt="Orca Rehab NOVA" className="role-select-logo" />
