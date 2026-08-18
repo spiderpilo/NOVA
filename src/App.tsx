@@ -301,7 +301,7 @@ function App() {
   } else if (screen === 'team') {
     pageContent = <PlaceholderScreen title="Team" message="Team management is coming soon." />
   } else if (!role) {
-    pageContent = <RoleSelectScreen />
+    pageContent = <RoleSelectScreen onOpenPatients={() => setScreen('patients')} />
   } else {
     pageContent = (
       <div className="app-container">
