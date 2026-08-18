@@ -50,7 +50,7 @@ function App() {
   // role/workspace state underneath, so returning from any of them lands
   // back where you were.
   const [screen, setScreen] = useState<'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('app')
-  const [patientFilter, setPatientFilter] = useState<PatientFilter>('all')
+  const [patientFilter, setPatientFilter] = useState<PatientFilter>({})
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
 
@@ -279,7 +279,7 @@ function App() {
   // landing screen instead of a real workspace — default to Scribe unless
   // the entry point implies a specific one (reviewing signatures implies
   // Provider, an empty note implies Scribe).
-  function handleOpenPatients(filter: PatientFilter = 'all', roleOverride?: Role) {
+  function handleOpenPatients(filter: PatientFilter = {}, roleOverride?: Role) {
     if (roleOverride) {
       setRole(roleOverride)
     } else if (!role) {
@@ -319,8 +319,10 @@ function App() {
     pageContent = (
       <RoleSelectScreen
         onOpenAllPatients={() => handleOpenPatients()}
-        onOpenAwaitingSignature={() => handleOpenPatients('awaitingSignature', 'provider')}
-        onOpenNoNoteYet={() => handleOpenPatients('noNote', 'scribe')}
+        onOpenAwaitingSignature={() => handleOpenPatients({ status: 'awaitingSignature' }, 'provider')}
+        onOpenNeedsUpload={() => setScreen('upload')}
+        onOpenNoNoteYet={() => handleOpenPatients({ status: 'noNote' }, 'scribe')}
+        onOpenRoundingDate={(date) => handleOpenPatients({ roundingDate: date })}
       />
     )
   } else {

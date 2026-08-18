@@ -16,6 +16,10 @@ export interface Patient {
   signedAt: number | null
   uploaded: boolean
   uploadedAt: number | null
+  // Which day's rounds this patient belongs to — a YYYY-MM-DD key (see
+  // lib/dateUtils.ts), not a timestamp, since it's a calendar day grouping
+  // rather than a moment in time.
+  roundingDate: string
 }
 
 // POST /api/reword

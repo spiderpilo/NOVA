@@ -1,12 +1,23 @@
 import { useState } from 'react'
 import './PatientListScreen.css'
+import { formatDateLabel } from '../lib/dateUtils'
 import { seedMockPatients } from '../lib/mockPatients'
 import { createPatient, deletePatient, listPatients } from '../lib/patientStore'
 import type { Patient } from '../lib/types'
 
-export type PatientFilter = 'all' | 'noNote' | 'awaitingSignature'
+export type PatientStatusFilter = 'noNote' | 'awaitingSignature'
 
-const FILTER_LABELS: Record<Exclude<PatientFilter, 'all'>, string> = {
+// Both fields are optional and independent — a rounding-date click sets
+// only `roundingDate` (every patient that day, whatever their status), a
+// stat-tile click sets only `status` (every patient in that state, any
+// day). Nothing currently combines both, but nothing stops a future entry
+// point from doing so.
+export interface PatientFilter {
+  status?: PatientStatusFilter
+  roundingDate?: string
+}
+
+const STATUS_LABELS: Record<PatientStatusFilter, string> = {
   noNote: 'No note yet',
   awaitingSignature: 'Awaiting provider signature',
 }
@@ -19,12 +30,20 @@ interface Props {
 }
 
 function matchesFilter(p: Patient, filter: PatientFilter): boolean {
-  if (filter === 'noNote') return !p.reworded
-  if (filter === 'awaitingSignature') return Boolean(p.reworded) && !p.signed
+  if (filter.roundingDate && p.roundingDate !== filter.roundingDate) return false
+  if (filter.status === 'noNote' && p.reworded) return false
+  if (filter.status === 'awaitingSignature' && !(p.reworded && !p.signed)) return false
   return true
 }
 
-function PatientListScreen({ activePatientId, initialFilter = 'all', onSelect, onDelete }: Props) {
+function describeFilter(filter: PatientFilter): string {
+  const parts: string[] = []
+  if (filter.roundingDate) parts.push(formatDateLabel(filter.roundingDate))
+  if (filter.status) parts.push(STATUS_LABELS[filter.status])
+  return parts.join(' · ')
+}
+
+function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDelete }: Props) {
   const [patients, setPatients] = useState<Patient[]>(() => listPatients())
   const [filter, setFilter] = useState<PatientFilter>(initialFilter)
   const [newName, setNewName] = useState('')
@@ -32,6 +51,7 @@ function PatientListScreen({ activePatientId, initialFilter = 'all', onSelect, o
   // actually deletes. Only one row can be armed at a time.
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
+  const isFiltered = Boolean(filter.status || filter.roundingDate)
   const visiblePatients = patients.filter((p) => matchesFilter(p, filter))
 
   function handleCreate() {
@@ -71,12 +91,12 @@ function PatientListScreen({ activePatientId, initialFilter = 'all', onSelect, o
         </button>
       </p>
 
-      {filter !== 'all' && (
+      {isFiltered && (
         <div className="patient-list-filter-banner">
           <span>
-            Showing: {FILTER_LABELS[filter]} ({visiblePatients.length})
+            Showing: {describeFilter(filter)} ({visiblePatients.length})
           </span>
-          <button type="button" className="patient-list-seed-link" onClick={() => setFilter('all')}>
+          <button type="button" className="patient-list-seed-link" onClick={() => setFilter({})}>
             Show all patients
           </button>
         </div>
@@ -99,9 +119,7 @@ function PatientListScreen({ activePatientId, initialFilter = 'all', onSelect, o
 
       {visiblePatients.length === 0 ? (
         <p className="patient-list-empty">
-          {filter === 'all'
-            ? 'No patients yet — add one above to get started.'
-            : `No patients matching "${FILTER_LABELS[filter as Exclude<PatientFilter, 'all'>]}".`}
+          {isFiltered ? `No patients matching "${describeFilter(filter)}".` : 'No patients yet — add one above to get started.'}
         </p>
       ) : (
         <ul className="patient-list">
@@ -120,7 +138,7 @@ function PatientListScreen({ activePatientId, initialFilter = 'all', onSelect, o
                   >
                     {p.reworded ? 'Note in progress' : 'No note yet'}
                   </span>{' '}
-                  · Updated {new Date(p.updatedAt).toLocaleString()}
+                  · {formatDateLabel(p.roundingDate)} · Updated {new Date(p.updatedAt).toLocaleString()}
                 </span>
               </button>
               <div className="patient-list-item-actions">

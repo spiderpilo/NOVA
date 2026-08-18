@@ -1,3 +1,4 @@
+import { todayDateKey } from './dateUtils'
 import type { NoteType, Patient } from './types'
 
 // localStorage rather than sessionStorage — patients need to survive a tab
@@ -26,7 +27,10 @@ export function listPatients(): Patient[] {
   return readAll().sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
-export function createPatient(name: string): Patient {
+// roundingDate defaults to today — a patient added through the normal "Add
+// Patient" flow is added as part of today's rounds. Mock/seed data passes
+// an explicit past date to backfill a realistic rounding-date history.
+export function createPatient(name: string, roundingDate: string = todayDateKey()): Patient {
   const now = Date.now()
   const patient: Patient = {
     id: crypto.randomUUID(),
@@ -40,6 +44,7 @@ export function createPatient(name: string): Patient {
     signedAt: null,
     uploaded: false,
     uploadedAt: null,
+    roundingDate,
   }
   writeAll([...readAll(), patient])
   return patient
@@ -75,4 +80,30 @@ export function markPatientUploaded(id: string): void {
   if (index === -1) return
   patients[index] = { ...patients[index], uploaded: true, uploadedAt: Date.now() }
   writeAll(patients)
+}
+
+export interface RoundingDateSummary {
+  date: string
+  total: number
+  complete: number
+}
+
+// A rounding date is "complete" once every patient seen that day has a
+// note, a provider signature, and an upload — the full pipeline, not just
+// one stage of it. Sorted newest-first, since a provider opening this is
+// almost always checking on today's or yesterday's rounds first.
+export function listRoundingDates(): RoundingDateSummary[] {
+  const byDate = new Map<string, Patient[]>()
+  for (const p of readAll()) {
+    const group = byDate.get(p.roundingDate) ?? []
+    group.push(p)
+    byDate.set(p.roundingDate, group)
+  }
+  return Array.from(byDate.entries())
+    .map(([date, group]) => ({
+      date,
+      total: group.length,
+      complete: group.filter((p) => p.reworded && p.signed && p.uploaded).length,
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date))
 }
