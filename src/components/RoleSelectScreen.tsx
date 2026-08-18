@@ -1,30 +1,14 @@
 import './RoleSelectScreen.css'
-import type { Role } from '../lib/types'
 
-interface Props {
-  onSelect: (role: Role) => void
-}
-
-// Temporarily stripped down to just the two role cards — branding, intro
-// copy, and other sections will come back once the rest of the page
-// (around the new TaskBar) is redesigned.
-function RoleSelectScreen({ onSelect }: Props) {
+// Temporarily just a placeholder — Provider/Scribe selection moved into the
+// TaskBar's Profile dropdown, so there's nothing left to pick here. The rest
+// of this page (branding, intro copy) will come back once it's redesigned
+// around the new TaskBar.
+function RoleSelectScreen() {
   return (
     <div className="role-select-screen">
       <div className="role-select-content">
-        <div className="role-select-options">
-          <button type="button" className="role-select-card" onClick={() => onSelect('provider')}>
-            <h2>Provider</h2>
-            <p>
-              Review the reworded note and approve AI-suggested additions — referrals, medications, equipment, and
-              follow-up items.
-            </p>
-          </button>
-          <button type="button" className="role-select-card" onClick={() => onSelect('scribe')}>
-            <h2>Scribe</h2>
-            <p>Use the guided AI interview to fill in the note by answering questions about the patient.</p>
-          </button>
-        </div>
+        <p className="role-select-placeholder">Use the Profile menu above to continue as Provider or Scribe.</p>
       </div>
     </div>
   )

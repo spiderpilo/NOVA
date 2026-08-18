@@ -47,7 +47,7 @@
 }
 
 .output-error p {
-  color: #f87171;
+  color: #dc2626;
   font-size: 14px;
 }
 
@@ -79,8 +79,8 @@
 }
 
 .diff-added {
-  background: rgba(74, 222, 128, 0.18);
-  color: #4ade80;
+  background: rgba(74, 222, 128, 0.22);
+  color: #16a34a;
   border-radius: 3px;
 }
 
@@ -100,7 +100,7 @@
 }
 
 .output-signoff-status-signed {
-  color: #4ade80;
+  color: #16a34a;
 }
 
 .output-signoff-status-unsigned {

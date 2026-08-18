@@ -25,13 +25,13 @@
 }
 
 .completeness-verdict-ok {
-  color: #4ade80;
+  color: #16a34a;
   font-size: 14px;
   font-weight: 500;
 }
 
 .completeness-verdict-warn {
-  color: #facc15;
+  color: #a16207;
   font-size: 14px;
   font-weight: 500;
 }

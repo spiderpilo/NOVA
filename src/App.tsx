@@ -294,7 +294,7 @@ function App() {
   } else if (screen === 'upload') {
     pageContent = <UploadToolScreen onHome={() => setScreen('app')} />
   } else if (!role) {
-    pageContent = <RoleSelectScreen onSelect={handleChooseRole} />
+    pageContent = <RoleSelectScreen />
   } else {
     pageContent = (
       <div className="app-container">
@@ -356,7 +356,7 @@ function App() {
 
   return (
     <div className="app-shell-root">
-      <TaskBar onOpenUploadTool={() => setScreen('upload')} />
+      <TaskBar onOpenUploadTool={() => setScreen('upload')} onSelectRole={handleChooseRole} />
       <div className="app-page-content">{pageContent}</div>
     </div>
   )

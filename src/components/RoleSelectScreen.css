@@ -18,39 +18,7 @@
   overflow-y: auto;
 }
 
-.role-select-options {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--gap);
-  width: 100%;
-  max-width: 720px;
-}
-
-.role-select-card {
-  flex: 1 1 280px;
-  text-align: left;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  padding: 24px;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  transition: border-color 0.15s ease;
-}
-
-.role-select-card:hover {
-  border-color: var(--accent-border);
-}
-
-.role-select-card h2 {
-  margin: 0 0 8px;
-}
-
-.role-select-card p {
+.role-select-placeholder {
   color: var(--text);
-  font-size: 14px;
-  line-height: 150%;
-  margin: 0;
+  font-size: 15px;
 }
