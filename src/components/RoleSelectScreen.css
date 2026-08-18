@@ -18,41 +18,13 @@
   overflow-y: auto;
 }
 
-.role-select-brand {
-  display: flex;
-  justify-content: center;
-}
-
-.role-select-logo {
-  width: 100%;
-  max-width: 360px;
-  height: auto;
-}
-
-.role-select-intro {
-  text-align: center;
-}
-
-.role-select-intro h1 {
-  font-family: var(--heading);
-  font-weight: 500;
-  font-size: 28px;
-  color: var(--text-h);
-  margin: 0 0 8px;
-}
-
-.role-select-intro p {
-  color: var(--text);
-  font-size: 15px;
-}
-
 .role-select-options {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--gap);
   width: 100%;
-  max-width: 960px;
+  max-width: 720px;
 }
 
 .role-select-card {

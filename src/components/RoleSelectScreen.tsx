@@ -1,23 +1,17 @@
 import './RoleSelectScreen.css'
-import orcaLogo from '../assets/orca-logo.png'
 import type { Role } from '../lib/types'
 
 interface Props {
   onSelect: (role: Role) => void
-  onOpenUploadTool: () => void
 }
 
-function RoleSelectScreen({ onSelect, onOpenUploadTool }: Props) {
+// Temporarily stripped down to just the two role cards — branding, intro
+// copy, and other sections will come back once the rest of the page
+// (around the new TaskBar) is redesigned.
+function RoleSelectScreen({ onSelect }: Props) {
   return (
     <div className="role-select-screen">
       <div className="role-select-content">
-        <div className="role-select-brand">
-          <img src={orcaLogo} alt="Orca Rehab NOVA" className="role-select-logo" />
-        </div>
-        <div className="role-select-intro">
-          <h1>Select User</h1>
-          <p>This determines which AI tool you'll see alongside the note.</p>
-        </div>
         <div className="role-select-options">
           <button type="button" className="role-select-card" onClick={() => onSelect('provider')}>
             <h2>Provider</h2>
@@ -29,10 +23,6 @@ function RoleSelectScreen({ onSelect, onOpenUploadTool }: Props) {
           <button type="button" className="role-select-card" onClick={() => onSelect('scribe')}>
             <h2>Scribe</h2>
             <p>Use the guided AI interview to fill in the note by answering questions about the patient.</p>
-          </button>
-          <button type="button" className="role-select-card" onClick={onOpenUploadTool}>
-            <h2>Upload Tool</h2>
-            <p>Download signed notes as PDFs, ready to upload into PCC.</p>
           </button>
         </div>
       </div>
