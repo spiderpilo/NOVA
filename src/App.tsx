@@ -279,20 +279,19 @@ function App() {
 
   let pageContent: ReactNode
 
+  // The single canonical "go home" action, used by the TaskBar's Home
+  // button regardless of which screen it's clicked from.
+  function handleGoHome() {
+    setRole(null)
+    setScreen('app')
+  }
+
   if (screen === 'patients') {
     pageContent = (
-      <PatientListScreen
-        activePatientId={selectedPatientId}
-        onSelect={handleSelectPatient}
-        onDelete={handleDeletePatient}
-        onHome={() => {
-          setRole(null)
-          setScreen('app')
-        }}
-      />
+      <PatientListScreen activePatientId={selectedPatientId} onSelect={handleSelectPatient} onDelete={handleDeletePatient} />
     )
   } else if (screen === 'upload') {
-    pageContent = <UploadToolScreen onHome={() => setScreen('app')} />
+    pageContent = <UploadToolScreen />
   } else if (!role) {
     pageContent = <RoleSelectScreen />
   } else {
@@ -305,9 +304,6 @@ function App() {
           <div className="app-topbar-actions">
             <button type="button" className="btn btn-sm" onClick={() => setScreen('patients')}>
               Patients
-            </button>
-            <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
-              Home
             </button>
           </div>
         </div>
@@ -356,7 +352,7 @@ function App() {
 
   return (
     <div className="app-shell-root">
-      <TaskBar onOpenUploadTool={() => setScreen('upload')} onSelectRole={handleChooseRole} />
+      <TaskBar onHome={handleGoHome} onOpenUploadTool={() => setScreen('upload')} onSelectRole={handleChooseRole} />
       <div className="app-page-content">{pageContent}</div>
     </div>
   )

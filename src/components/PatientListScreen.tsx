@@ -7,10 +7,9 @@ interface Props {
   activePatientId: string | null
   onSelect: (patient: Patient) => void
   onDelete: (id: string) => void
-  onHome: () => void
 }
 
-function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Props) {
+function PatientListScreen({ activePatientId, onSelect, onDelete }: Props) {
   const [patients, setPatients] = useState<Patient[]>(() => listPatients())
   const [newName, setNewName] = useState('')
   // Armed by a first click on Delete; a second click on the same row
@@ -40,9 +39,6 @@ function PatientListScreen({ activePatientId, onSelect, onDelete, onHome }: Prop
     <div className="patient-list-screen">
       <div className="patient-list-header">
         <h1>Patients</h1>
-        <button type="button" className="btn btn-sm" onClick={onHome}>
-          Home
-        </button>
       </div>
 
       <p className="patient-list-note">

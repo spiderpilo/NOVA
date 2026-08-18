@@ -1,18 +1,19 @@
-import { BookOpen, ChevronDown, LogIn, LogOut, MessageCircle, NotebookPen, Stethoscope, Upload, UserCircle, Users } from 'lucide-react'
+import { BookOpen, ChevronDown, Home, LogIn, LogOut, MessageCircle, NotebookPen, Stethoscope, Upload, UserCircle, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import './TaskBar.css'
 import type { Role } from '../lib/types'
 
 interface Props {
+  onHome: () => void
   onOpenUploadTool: () => void
   onSelectRole: (role: Role) => void
 }
 
 // Instructions/Chat/Team are visual shell only for now — no onClick handlers
 // yet. This is a layout pass to get placement approved before they're wired
-// up to real features or new pages. Upload and the Provider/Scribe picker
-// under Profile are the two pieces with real behavior already.
-function TaskBar({ onOpenUploadTool, onSelectRole }: Props) {
+// up to real features or new pages. Home, Upload, and the Provider/Scribe
+// picker under Profile are the pieces with real behavior already.
+function TaskBar({ onHome, onOpenUploadTool, onSelectRole }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
@@ -35,6 +36,10 @@ function TaskBar({ onOpenUploadTool, onSelectRole }: Props) {
 
   return (
     <div className="task-bar">
+      <button type="button" className="task-bar-button" onClick={onHome}>
+        <Home size={17} />
+        Home
+      </button>
       <button type="button" className="task-bar-button">
         <BookOpen size={17} />
         Instructions

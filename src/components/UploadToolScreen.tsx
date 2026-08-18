@@ -4,11 +4,7 @@ import { downloadNotePdf } from '../lib/pdfGenerate'
 import { listPatients, markPatientUploaded } from '../lib/patientStore'
 import type { Patient } from '../lib/types'
 
-interface Props {
-  onHome: () => void
-}
-
-function UploadToolScreen({ onHome }: Props) {
+function UploadToolScreen() {
   const [patients, setPatients] = useState<Patient[]>(() => listPatients().filter((p) => p.signed))
 
   function handleUpload(patient: Patient) {
@@ -22,9 +18,6 @@ function UploadToolScreen({ onHome }: Props) {
     <div className="upload-tool-screen">
       <div className="upload-tool-header">
         <h1>Upload Tool</h1>
-        <button type="button" className="btn btn-sm" onClick={onHome}>
-          Home
-        </button>
       </div>
 
       <p className="upload-tool-note">
