@@ -32,6 +32,16 @@ export interface TeamChatMessage {
   createdAt: number
 }
 
+// A person on the Team page (see lib/teamStore.ts). Providers supervise
+// scribes — supervisorId names which provider a scribe is assigned to, and
+// is always null for a provider.
+export interface TeamMember {
+  id: string
+  name: string
+  role: Role
+  supervisorId: string | null
+}
+
 // POST /api/reword
 export interface RewordRequest {
   text: string

@@ -10,6 +10,7 @@ import PlaceholderScreen from './components/PlaceholderScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
 import TaskBar from './components/TaskBar'
+import TeamScreen from './components/TeamScreen'
 import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
@@ -324,7 +325,7 @@ function App() {
   } else if (screen === 'chat') {
     pageContent = <ChatScreen onOpenPatientNote={handleOpenPatientNoteFromChat} />
   } else if (screen === 'team') {
-    pageContent = <PlaceholderScreen title="Team" message="Team management is coming soon." />
+    pageContent = <TeamScreen />
   } else if (!role) {
     pageContent = (
       <RoleSelectScreen

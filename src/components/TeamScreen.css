@@ -1,0 +1,157 @@
+.team-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-width: 640px;
+  margin: 0 auto;
+  height: 100%;
+  padding: 40px var(--gap);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.team-screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team-screen-header h1 {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 28px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.team-invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+
+.team-invite-form input,
+.team-invite-form select {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text-h);
+  font: inherit;
+}
+
+.team-invite-form input:focus,
+.team-invite-form select:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.team-invite-role-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  gap: 2px;
+  width: fit-content;
+}
+
+.team-role-option {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+}
+
+.team-role-option-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.team-invite-note {
+  color: var(--text);
+  font-size: 13px;
+  margin: 0;
+}
+
+.team-invite-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-provider-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+
+.team-provider-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.team-provider-icon {
+  color: var(--accent);
+}
+
+.team-provider-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.team-role-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.team-scribes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 26px;
+}
+
+.team-scribe-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.team-scribe-icon {
+  color: var(--text);
+}
+
+.team-empty-note {
+  color: var(--text);
+  font-size: 13px;
+  margin: 0;
+}
