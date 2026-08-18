@@ -30,6 +30,8 @@ function RoleSelectScreen({
   const needsUpload = patients.filter((p) => p.signed && !p.uploaded).length
   const noNoteYet = patients.filter((p) => !p.reworded).length
   const roundingDates = listRoundingDates()
+  const completeDates = roundingDates.filter((rd) => rd.complete === rd.total).length
+  const inProgressDates = roundingDates.length - completeDates
 
   return (
     <div className="role-select-screen">
@@ -74,6 +76,20 @@ function RoleSelectScreen({
               <CalendarDays size={18} />
               Rounding Dates
             </h2>
+            <div className="rounding-dates-summary">
+              <div className="rounding-dates-summary-item">
+                <span className="rounding-dates-summary-value">{roundingDates.length}</span>
+                <span className="rounding-dates-summary-label">Rounding dates</span>
+              </div>
+              <div className="rounding-dates-summary-item rounding-dates-summary-item-complete">
+                <span className="rounding-dates-summary-value">{completeDates}</span>
+                <span className="rounding-dates-summary-label">Complete</span>
+              </div>
+              <div className="rounding-dates-summary-item rounding-dates-summary-item-pending">
+                <span className="rounding-dates-summary-value">{inProgressDates}</span>
+                <span className="rounding-dates-summary-label">In progress</span>
+              </div>
+            </div>
             <ul className="rounding-dates-list">
               {roundingDates.map((rd) => {
                 const isComplete = rd.complete === rd.total

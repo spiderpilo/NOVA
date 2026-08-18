@@ -120,6 +120,49 @@
   margin: 0 0 12px;
 }
 
+.rounding-dates-summary {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.rounding-dates-summary-item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border-left: 1px solid var(--border);
+}
+
+.rounding-dates-summary-item:first-child {
+  border-left: none;
+}
+
+.rounding-dates-summary-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1;
+}
+
+.rounding-dates-summary-item-complete .rounding-dates-summary-value {
+  color: #16a34a;
+}
+
+.rounding-dates-summary-item-pending .rounding-dates-summary-value {
+  color: #a16207;
+}
+
+.rounding-dates-summary-label {
+  font-size: 11px;
+  color: var(--text);
+  text-align: center;
+}
+
 .rounding-dates-list {
   list-style: none;
   margin: 0;
