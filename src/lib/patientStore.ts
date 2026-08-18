@@ -1,4 +1,4 @@
-import { todayDateKey } from './dateUtils'
+import { dateKey, todayDateKey } from './dateUtils'
 import type { NoteType, Patient } from './types'
 
 // localStorage rather than sessionStorage — patients need to survive a tab
@@ -9,7 +9,14 @@ const PATIENTS_KEY = 'nova:patients'
 function readAll(): Patient[] {
   try {
     const raw = localStorage.getItem(PATIENTS_KEY)
-    return raw ? (JSON.parse(raw) as Patient[]) : []
+    if (!raw) return []
+    const patients = JSON.parse(raw) as Patient[]
+    // Backfill for patients saved before roundingDate existed — without
+    // this, formatDateLabel() throws on the missing field and blanks the
+    // whole page, since nothing here has an error boundary. Best guess is
+    // their creation date, since that's the closest thing to "which day's
+    // rounds they were part of" for a record that predates the concept.
+    return patients.map((p) => (p.roundingDate ? p : { ...p, roundingDate: dateKey(new Date(p.createdAt)) }))
   } catch {
     return []
   }
