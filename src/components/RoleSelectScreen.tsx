@@ -30,8 +30,6 @@ function RoleSelectScreen({
   const needsUpload = patients.filter((p) => p.signed && !p.uploaded).length
   const noNoteYet = patients.filter((p) => !p.reworded).length
   const roundingDates = listRoundingDates()
-  const completeDates = roundingDates.filter((rd) => rd.complete === rd.total).length
-  const inProgressDates = roundingDates.length - completeDates
 
   return (
     <div className="role-select-screen">
@@ -76,39 +74,33 @@ function RoleSelectScreen({
               <CalendarDays size={18} />
               Rounding Dates
             </h2>
-            <div className="rounding-dates-summary">
-              <div className="rounding-dates-summary-item">
-                <span className="rounding-dates-summary-value">{roundingDates.length}</span>
-                <span className="rounding-dates-summary-label">Rounding dates</span>
-              </div>
-              <div className="rounding-dates-summary-item rounding-dates-summary-item-complete">
-                <span className="rounding-dates-summary-value">{completeDates}</span>
-                <span className="rounding-dates-summary-label">Complete</span>
-              </div>
-              <div className="rounding-dates-summary-item rounding-dates-summary-item-pending">
-                <span className="rounding-dates-summary-value">{inProgressDates}</span>
-                <span className="rounding-dates-summary-label">In progress</span>
-              </div>
-            </div>
             <ul className="rounding-dates-list">
               {roundingDates.map((rd) => {
                 const isComplete = rd.complete === rd.total
                 return (
                   <li key={rd.date}>
                     <button type="button" className="rounding-date-item" onClick={() => onOpenRoundingDate(rd.date)}>
-                      <span className="rounding-date-label">{formatDateLabel(rd.date)}</span>
-                      <span
-                        className={isComplete ? 'rounding-date-status rounding-date-status-complete' : 'rounding-date-status'}
-                      >
-                        {isComplete ? (
-                          <>
+                      <div className="rounding-date-row">
+                        <span className="rounding-date-label">{formatDateLabel(rd.date)}</span>
+                        {isComplete && (
+                          <span className="rounding-date-complete-badge">
                             <CircleCheck size={15} />
                             Complete
-                          </>
-                        ) : (
-                          `${rd.complete}/${rd.total} complete`
+                          </span>
                         )}
-                      </span>
+                      </div>
+                      <div className="rounding-date-breakdown">
+                        <div className="rounding-date-stat">
+                          <span className="rounding-date-stat-value">
+                            {rd.withNotes}/{rd.total}
+                          </span>
+                          <span className="rounding-date-stat-label">Patients with notes</span>
+                        </div>
+                        <div className="rounding-date-stat rounding-date-stat-warning">
+                          <span className="rounding-date-stat-value">{rd.awaitingSignature}</span>
+                          <span className="rounding-date-stat-label">Need signature</span>
+                        </div>
+                      </div>
                     </button>
                   </li>
                 )
