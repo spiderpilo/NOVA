@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './PatientListScreen.css'
+import { seedMockPatients } from '../lib/mockPatients'
 import { createPatient, deletePatient, listPatients } from '../lib/patientStore'
 import type { Patient } from '../lib/types'
 
@@ -35,6 +36,11 @@ function PatientListScreen({ activePatientId, onSelect, onDelete }: Props) {
     onDelete(id)
   }
 
+  function handleSeedMockPatients() {
+    seedMockPatients()
+    setPatients(listPatients())
+  }
+
   return (
     <div className="patient-list-screen">
       <div className="patient-list-header">
@@ -42,7 +48,10 @@ function PatientListScreen({ activePatientId, onSelect, onDelete }: Props) {
       </div>
 
       <p className="patient-list-note">
-        Stored locally on this device for this test run — not yet synced to any shared or cloud storage.
+        Stored locally on this device for this test run — not yet synced to any shared or cloud storage.{' '}
+        <button type="button" className="patient-list-seed-link" onClick={handleSeedMockPatients}>
+          Add 15 mock patients
+        </button>
       </p>
 
       <div className="patient-list-new">

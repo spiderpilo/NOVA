@@ -28,6 +28,21 @@
   font-size: 13px;
 }
 
+.patient-list-seed-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.patient-list-seed-link:hover {
+  color: var(--text-h);
+}
+
 .patient-list-new {
   display: flex;
   gap: 8px;
