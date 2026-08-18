@@ -1,7 +1,25 @@
-.app-container {
+/* The single top-level layout for the whole app — TaskBar pinned at the
+   top, everything else (role picker, Patients, Upload Tool, workspace)
+   rendered below it inside .app-page-content. Individual screens size
+   themselves to 100% of that remaining space rather than 100vh, since
+   the TaskBar now claims some of the viewport. */
+.app-shell-root {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  box-sizing: border-box;
+}
+
+.app-page-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   box-sizing: border-box;
 }
 
@@ -83,7 +101,7 @@
 @media (max-width: 900px) {
   .app-container {
     height: auto;
-    min-height: 100vh;
+    min-height: 100%;
   }
 
   .app-shell {

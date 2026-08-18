@@ -4,7 +4,7 @@
   gap: var(--gap);
   max-width: 640px;
   margin: 0 auto;
-  height: 100vh;
+  height: 100%;
   padding: 40px var(--gap);
   box-sizing: border-box;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
@@ -7,6 +7,7 @@ import OutputPanel, { type RewordStatus } from './components/OutputPanel'
 import PatientListScreen from './components/PatientListScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
+import TaskBar from './components/TaskBar'
 import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
@@ -276,8 +277,10 @@ function App() {
     setScreen('patients')
   }
 
+  let pageContent: ReactNode
+
   if (screen === 'patients') {
-    return (
+    pageContent = (
       <PatientListScreen
         activePatientId={selectedPatientId}
         onSelect={handleSelectPatient}
@@ -288,70 +291,73 @@ function App() {
         }}
       />
     )
-  }
-
-  if (screen === 'upload') {
-    return <UploadToolScreen onHome={() => setScreen('app')} />
-  }
-
-  if (!role) {
-    return <RoleSelectScreen onSelect={handleChooseRole} onOpenUploadTool={() => setScreen('upload')} />
+  } else if (screen === 'upload') {
+    pageContent = <UploadToolScreen onHome={() => setScreen('app')} />
+  } else if (!role) {
+    pageContent = <RoleSelectScreen onSelect={handleChooseRole} onOpenUploadTool={() => setScreen('upload')} />
+  } else {
+    pageContent = (
+      <div className="app-container">
+        <div className="app-topbar">
+          <span className="app-topbar-patient">
+            {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
+          </span>
+          <div className="app-topbar-actions">
+            <button type="button" className="btn btn-sm" onClick={() => setScreen('patients')}>
+              Patients
+            </button>
+            <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
+              Home
+            </button>
+          </div>
+        </div>
+        <div className={role === 'provider' ? 'app-shell app-shell-provider' : 'app-shell'}>
+          {role === 'scribe' && (
+            <div className="left-column">
+              <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
+              <CompletenessPanel
+                status={completenessStatus}
+                verdict={verdict}
+                missingItems={missingItems}
+                onRecheck={handleRecheckCompleteness}
+              />
+            </div>
+          )}
+          {role === 'scribe' && (
+            <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
+          )}
+          {role === 'provider' && (
+            <SuggestionsPanel
+              noteText={reworded}
+              originalText={extractedText}
+              noteVersion={noteVersion}
+              onApply={handleApplySuggestions}
+            />
+          )}
+          <OutputPanel
+            status={rewordStatus}
+            reworded={reworded}
+            previousReworded={previousReworded}
+            error={rewordError}
+            onRetry={handleRetryReword}
+            onChange={handleOutputChange}
+            onDismissDiff={handleDismissDiff}
+            idleMessage={role === 'provider' ? 'Select a patient to review their note.' : undefined}
+            showSignOff={role === 'provider'}
+            signed={signed}
+            signedAt={signedAt}
+            onSign={handleSignNote}
+            onUnsign={handleUnsignNote}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="app-container">
-      <div className="app-topbar">
-        <span className="app-topbar-patient">
-          {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
-        </span>
-        <div className="app-topbar-actions">
-          <button type="button" className="btn btn-sm" onClick={() => setScreen('patients')}>
-            Patients
-          </button>
-          <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
-            Home
-          </button>
-        </div>
-      </div>
-      <div className={role === 'provider' ? 'app-shell app-shell-provider' : 'app-shell'}>
-        {role === 'scribe' && (
-          <div className="left-column">
-            <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
-            <CompletenessPanel
-              status={completenessStatus}
-              verdict={verdict}
-              missingItems={missingItems}
-              onRecheck={handleRecheckCompleteness}
-            />
-          </div>
-        )}
-        {role === 'scribe' && (
-          <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
-        )}
-        {role === 'provider' && (
-          <SuggestionsPanel
-            noteText={reworded}
-            originalText={extractedText}
-            noteVersion={noteVersion}
-            onApply={handleApplySuggestions}
-          />
-        )}
-        <OutputPanel
-          status={rewordStatus}
-          reworded={reworded}
-          previousReworded={previousReworded}
-          error={rewordError}
-          onRetry={handleRetryReword}
-          onChange={handleOutputChange}
-          onDismissDiff={handleDismissDiff}
-          idleMessage={role === 'provider' ? 'Select a patient to review their note.' : undefined}
-          showSignOff={role === 'provider'}
-          signed={signed}
-          signedAt={signedAt}
-          onSign={handleSignNote}
-          onUnsign={handleUnsignNote}
-        />
-      </div>
+    <div className="app-shell-root">
+      <TaskBar />
+      <div className="app-page-content">{pageContent}</div>
     </div>
   )
 }

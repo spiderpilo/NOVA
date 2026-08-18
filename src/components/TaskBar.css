@@ -1,0 +1,23 @@
+.task-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 10px var(--gap);
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.task-bar-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.task-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
