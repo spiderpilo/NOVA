@@ -18,6 +18,21 @@
   overflow-y: auto;
 }
 
+.role-select-video-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.role-select-video {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  height: auto;
+}
+
 .role-select-placeholder {
   color: var(--text);
   font-size: 15px;

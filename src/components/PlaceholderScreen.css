@@ -1,0 +1,26 @@
+.placeholder-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--gap);
+}
+
+.placeholder-content {
+  text-align: center;
+  max-width: 480px;
+}
+
+.placeholder-content h1 {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 26px;
+  color: var(--text-h);
+  margin: 0 0 8px;
+}
+
+.placeholder-content p {
+  color: var(--text);
+  font-size: 15px;
+}

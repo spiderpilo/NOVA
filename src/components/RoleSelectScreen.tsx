@@ -1,4 +1,5 @@
 import './RoleSelectScreen.css'
+import orcaVideo from '../assets/orca-vid.mp4'
 import { listPatients } from '../lib/patientStore'
 
 // Temporarily just a placeholder plus a patient summary — Provider/Scribe
@@ -14,6 +15,9 @@ function RoleSelectScreen() {
   return (
     <div className="role-select-screen">
       <div className="role-select-content">
+        <div className="role-select-video-card">
+          <video className="role-select-video" src={orcaVideo} autoPlay loop muted playsInline />
+        </div>
         <div className="home-stats">
           <div className="home-stat-tile">
             <span className="home-stat-value">{total}</span>

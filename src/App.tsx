@@ -5,6 +5,7 @@ import CompletenessPanel, { type CompletenessStatus } from './components/Complet
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
 import PatientListScreen from './components/PatientListScreen'
+import PlaceholderScreen from './components/PlaceholderScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
 import TaskBar from './components/TaskBar'
@@ -44,10 +45,11 @@ function App() {
   // on a shared workstation).
   const [role, setRole] = useState<Role | null>(null)
 
-  // 'patients'/'upload' overlay the picker or the workspace, whichever is
-  // current — they don't replace the role/workspace state underneath, so
-  // returning from either lands back where you were.
-  const [screen, setScreen] = useState<'app' | 'patients' | 'upload'>('app')
+  // 'patients'/'upload'/'instructions'/'chat'/'team' overlay the picker or
+  // the workspace, whichever is current — they don't replace the
+  // role/workspace state underneath, so returning from any of them lands
+  // back where you were.
+  const [screen, setScreen] = useState<'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('app')
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
 
@@ -292,6 +294,12 @@ function App() {
     )
   } else if (screen === 'upload') {
     pageContent = <UploadToolScreen />
+  } else if (screen === 'instructions') {
+    pageContent = <PlaceholderScreen title="Instructions" message="Guidance and how-tos for using NOVA are coming soon." />
+  } else if (screen === 'chat') {
+    pageContent = <PlaceholderScreen title="Chat" message="A dedicated chat space is coming soon." />
+  } else if (screen === 'team') {
+    pageContent = <PlaceholderScreen title="Team" message="Team management is coming soon." />
   } else if (!role) {
     pageContent = <RoleSelectScreen />
   } else {
@@ -352,7 +360,15 @@ function App() {
 
   return (
     <div className="app-shell-root">
-      <TaskBar onHome={handleGoHome} onOpenUploadTool={() => setScreen('upload')} onSelectRole={handleChooseRole} />
+      <TaskBar
+        onHome={handleGoHome}
+        onOpenChat={() => setScreen('chat')}
+        onOpenInstructions={() => setScreen('instructions')}
+        onOpenPatients={() => setScreen('patients')}
+        onOpenTeam={() => setScreen('team')}
+        onOpenUploadTool={() => setScreen('upload')}
+        onSelectRole={handleChooseRole}
+      />
       <div className="app-page-content">{pageContent}</div>
     </div>
   )
