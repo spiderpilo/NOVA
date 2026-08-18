@@ -22,6 +22,16 @@ export interface Patient {
   roundingDate: string
 }
 
+// A message in the mock team-chat page (see lib/chatStore.ts) — distinct
+// from ChatHistoryMessage below, which is the AI interview's own message
+// shape and unrelated to this human-to-human channel.
+export interface TeamChatMessage {
+  id: string
+  author: string
+  text: string
+  createdAt: number
+}
+
 // POST /api/reword
 export interface RewordRequest {
   text: string

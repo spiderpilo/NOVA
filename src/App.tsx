@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
+import ChatScreen from './components/ChatScreen'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
@@ -12,7 +13,7 @@ import TaskBar from './components/TaskBar'
 import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
-import { updatePatientNote } from './lib/patientStore'
+import { getPatientById, updatePatientNote } from './lib/patientStore'
 import type { NoteType, Patient, Role } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
@@ -289,6 +290,15 @@ function App() {
     setScreen('patients')
   }
 
+  // Clicking a patient mention in Team Chat — same role-defaulting need as
+  // handleOpenPatients above, since Chat is reachable with no role picked.
+  function handleOpenPatientNoteFromChat(patientId: string) {
+    const patient = getPatientById(patientId)
+    if (!patient) return
+    if (!role) setRole('scribe')
+    handleSelectPatient(patient)
+  }
+
   let pageContent: ReactNode
 
   // The single canonical "go home" action, used by the TaskBar's Home
@@ -312,7 +322,7 @@ function App() {
   } else if (screen === 'instructions') {
     pageContent = <PlaceholderScreen title="Instructions" message="Guidance and how-tos for using NOVA are coming soon." />
   } else if (screen === 'chat') {
-    pageContent = <PlaceholderScreen title="Chat" message="A dedicated chat space is coming soon." />
+    pageContent = <ChatScreen onOpenPatientNote={handleOpenPatientNoteFromChat} />
   } else if (screen === 'team') {
     pageContent = <PlaceholderScreen title="Team" message="Team management is coming soon." />
   } else if (!role) {

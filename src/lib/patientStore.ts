@@ -34,6 +34,10 @@ export function listPatients(): Patient[] {
   return readAll().sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
+export function getPatientById(id: string): Patient | null {
+  return readAll().find((p) => p.id === id) ?? null
+}
+
 // roundingDate defaults to today — a patient added through the normal "Add
 // Patient" flow is added as part of today's rounds. Mock/seed data passes
 // an explicit past date to backfill a realistic rounding-date history.
