@@ -273,13 +273,6 @@ function App() {
     if (text) runCompletenessCheck(text)
   }
 
-  // Picking a role immediately asks "for which patient" — the patient list
-  // comes up next rather than landing in an empty workspace.
-  function handleChooseRole(chosenRole: Role) {
-    setRole(chosenRole)
-    setScreen('patients')
-  }
-
   // Reaching the Patients screen without a role already picked (the
   // TaskBar's direct Patients button, or a home-page stat tile) still
   // needs *some* role, or selecting a patient bounces back to the empty
@@ -395,7 +388,6 @@ function App() {
         onOpenPatients={() => handleOpenPatients()}
         onOpenTeam={() => setScreen('team')}
         onOpenUploadTool={() => setScreen('upload')}
-        onSelectRole={handleChooseRole}
       />
       <div className="app-page-content">{pageContent}</div>
     </div>

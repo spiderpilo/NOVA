@@ -73,6 +73,15 @@
   box-shadow: var(--shadow);
 }
 
+.home-stat-icon {
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.home-stat-tile-warning .home-stat-icon {
+  color: #a16207;
+}
+
 .home-stat-value {
   font-size: 36px;
   font-weight: 600;
