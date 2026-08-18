@@ -23,6 +23,12 @@
   margin: 0;
 }
 
+.patient-list-date-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .patient-list-note {
   color: var(--text);
   font-size: 13px;

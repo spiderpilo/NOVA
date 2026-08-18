@@ -38,33 +38,33 @@ function RoleSelectScreen({
           <video className="role-select-video" src={orcaVideo} autoPlay loop muted playsInline />
         </div>
         <div className="home-stats">
-          <button type="button" className="home-stat-tile home-stat-tile-interactive" onClick={onOpenAllPatients}>
-            <Users size={22} className="home-stat-icon" />
-            <span className="home-stat-value">{total}</span>
-            <span className="home-stat-label">Total patients</span>
+          <button type="button" className="stat-tile stat-tile-interactive" onClick={onOpenAllPatients}>
+            <Users size={22} className="stat-tile-icon" />
+            <span className="stat-tile-value">{total}</span>
+            <span className="stat-tile-label">Total patients</span>
           </button>
-          <button type="button" className="home-stat-tile home-stat-tile-interactive" onClick={onOpenNoNoteYet}>
-            <FilePlus2 size={22} className="home-stat-icon" />
-            <span className="home-stat-value">{noNoteYet}</span>
-            <span className="home-stat-label">No note yet</span>
+          <button type="button" className="stat-tile stat-tile-interactive" onClick={onOpenNoNoteYet}>
+            <FilePlus2 size={22} className="stat-tile-icon" />
+            <span className="stat-tile-value">{noNoteYet}</span>
+            <span className="stat-tile-label">No note yet</span>
           </button>
           <button
             type="button"
-            className="home-stat-tile home-stat-tile-interactive home-stat-tile-warning"
+            className="stat-tile stat-tile-interactive stat-tile-warning"
             onClick={onOpenAwaitingSignature}
           >
-            <FileSignature size={22} className="home-stat-icon" />
-            <span className="home-stat-value">{awaitingSignature}</span>
-            <span className="home-stat-label">Awaiting provider signature</span>
+            <FileSignature size={22} className="stat-tile-icon" />
+            <span className="stat-tile-value">{awaitingSignature}</span>
+            <span className="stat-tile-label">Awaiting provider signature</span>
           </button>
           <button
             type="button"
-            className="home-stat-tile home-stat-tile-interactive home-stat-tile-warning"
+            className="stat-tile stat-tile-interactive stat-tile-warning"
             onClick={onOpenNeedsUpload}
           >
-            <CloudUpload size={22} className="home-stat-icon" />
-            <span className="home-stat-value">{needsUpload}</span>
-            <span className="home-stat-label">Need to be uploaded</span>
+            <CloudUpload size={22} className="stat-tile-icon" />
+            <span className="stat-tile-value">{needsUpload}</span>
+            <span className="stat-tile-label">Need to be uploaded</span>
           </button>
         </div>
 
@@ -89,17 +89,9 @@ function RoleSelectScreen({
                           </span>
                         )}
                       </div>
-                      <div className="rounding-date-breakdown">
-                        <div className="rounding-date-stat">
-                          <span className="rounding-date-stat-value">
-                            {rd.withNotes}/{rd.total}
-                          </span>
-                          <span className="rounding-date-stat-label">Patients with notes</span>
-                        </div>
-                        <div className="rounding-date-stat rounding-date-stat-warning">
-                          <span className="rounding-date-stat-value">{rd.awaitingSignature}</span>
-                          <span className="rounding-date-stat-label">Need signature</span>
-                        </div>
+                      <div className="rounding-date-counts">
+                        <span>{rd.total} patients</span>
+                        <span>{rd.complete} done</span>
                       </div>
                     </button>
                   </li>

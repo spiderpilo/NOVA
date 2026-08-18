@@ -92,9 +92,6 @@ export function markPatientUploaded(id: string): void {
 export interface RoundingDateSummary {
   date: string
   total: number
-  withNotes: number
-  noNoteYet: number
-  awaitingSignature: number
   complete: number
 }
 
@@ -110,16 +107,10 @@ export function listRoundingDates(): RoundingDateSummary[] {
     byDate.set(p.roundingDate, group)
   }
   return Array.from(byDate.entries())
-    .map(([date, group]) => {
-      const withNotes = group.filter((p) => p.reworded).length
-      return {
-        date,
-        total: group.length,
-        withNotes,
-        noNoteYet: group.length - withNotes,
-        awaitingSignature: group.filter((p) => p.reworded && !p.signed).length,
-        complete: group.filter((p) => p.reworded && p.signed && p.uploaded).length,
-      }
-    })
+    .map(([date, group]) => ({
+      date,
+      total: group.length,
+      complete: group.filter((p) => p.reworded && p.signed && p.uploaded).length,
+    }))
     .sort((a, b) => b.date.localeCompare(a.date))
 }

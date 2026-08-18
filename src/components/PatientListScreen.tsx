@@ -53,6 +53,16 @@ function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDe
 
   const isFiltered = Boolean(filter.status || filter.roundingDate)
   const visiblePatients = patients.filter((p) => matchesFilter(p, filter))
+  // A rounding-date click (not a status click) gets its own header treatment
+  // — the date as the title, plus a home-page-style stat row scoped to just
+  // that day's patients — rather than the generic "Patients" heading.
+  const isDateView = Boolean(filter.roundingDate) && !filter.status
+  const dateStats = {
+    total: visiblePatients.length,
+    noNoteYet: visiblePatients.filter((p) => !p.reworded).length,
+    awaitingSignature: visiblePatients.filter((p) => p.reworded && !p.signed).length,
+    needsUpload: visiblePatients.filter((p) => p.signed && !p.uploaded).length,
+  }
 
   function handleCreate() {
     const name = newName.trim()
@@ -81,8 +91,29 @@ function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDe
   return (
     <div className="patient-list-screen">
       <div className="patient-list-header">
-        <h1>Patients</h1>
+        <h1>{isDateView ? formatDateLabel(filter.roundingDate ?? '') : 'Patients'}</h1>
       </div>
+
+      {isDateView && (
+        <div className="patient-list-date-stats">
+          <div className="stat-tile">
+            <span className="stat-tile-value">{dateStats.total}</span>
+            <span className="stat-tile-label">Total patients</span>
+          </div>
+          <div className="stat-tile">
+            <span className="stat-tile-value">{dateStats.noNoteYet}</span>
+            <span className="stat-tile-label">No note yet</span>
+          </div>
+          <div className="stat-tile stat-tile-warning">
+            <span className="stat-tile-value">{dateStats.awaitingSignature}</span>
+            <span className="stat-tile-label">Awaiting signature</span>
+          </div>
+          <div className="stat-tile stat-tile-warning">
+            <span className="stat-tile-value">{dateStats.needsUpload}</span>
+            <span className="stat-tile-label">Need to be uploaded</span>
+          </div>
+        </div>
+      )}
 
       <p className="patient-list-note">
         Stored locally on this device for this test run — not yet synced to any shared or cloud storage.{' '}
@@ -94,7 +125,7 @@ function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDe
       {isFiltered && (
         <div className="patient-list-filter-banner">
           <span>
-            Showing: {describeFilter(filter)} ({visiblePatients.length})
+            {isDateView ? `${visiblePatients.length} patients` : `Showing: ${describeFilter(filter)} (${visiblePatients.length})`}
           </span>
           <button type="button" className="patient-list-seed-link" onClick={() => setFilter({})}>
             Show all patients
