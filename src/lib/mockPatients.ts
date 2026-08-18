@@ -7,32 +7,35 @@ interface MockPatientSpec {
   name: string
   daysAgo: number
   state: MockState
+  facility: string
 }
 
 // Fictional names and a hand-picked spread across 4 rounding dates, so the
 // home page's rounding-date list tells a coherent story: older rounds are
 // further along than today's, the way a real clinic's backlog actually
-// looks — instead of every date having the same random mix.
+// looks — instead of every date having the same random mix. Facilities are
+// spread across a few fictional sites, the way one provider's rounds
+// actually cover several buildings in a day.
 const MOCK_PATIENTS: MockPatientSpec[] = [
   // 3 days ago — fully wrapped up.
-  { name: 'Alice Turner', daysAgo: 3, state: 'complete' },
-  { name: 'Marcus Bell', daysAgo: 3, state: 'complete' },
-  { name: 'Priya Nair', daysAgo: 3, state: 'complete' },
-  { name: 'James O’Connor', daysAgo: 3, state: 'complete' },
+  { name: 'Alice Turner', daysAgo: 3, state: 'complete', facility: 'Sunrise Rehab Center' },
+  { name: 'Marcus Bell', daysAgo: 3, state: 'complete', facility: 'Sunrise Rehab Center' },
+  { name: 'Priya Nair', daysAgo: 3, state: 'complete', facility: 'Riverside SNF' },
+  { name: 'James O’Connor', daysAgo: 3, state: 'complete', facility: 'Riverside SNF' },
   // 2 days ago — nearly done, one still needs uploading.
-  { name: 'Fatima Ali', daysAgo: 2, state: 'complete' },
-  { name: 'Robert Chen', daysAgo: 2, state: 'complete' },
-  { name: 'Linda Garcia', daysAgo: 2, state: 'complete' },
-  { name: 'David Kim', daysAgo: 2, state: 'signedNotUploaded' },
+  { name: 'Fatima Ali', daysAgo: 2, state: 'complete', facility: 'Cedar Grove Nursing Home' },
+  { name: 'Robert Chen', daysAgo: 2, state: 'complete', facility: 'Cedar Grove Nursing Home' },
+  { name: 'Linda Garcia', daysAgo: 2, state: 'complete', facility: 'Sunrise Rehab Center' },
+  { name: 'David Kim', daysAgo: 2, state: 'signedNotUploaded', facility: 'Riverside SNF' },
   // Yesterday — still mostly in progress.
-  { name: 'Sophia Rossi', daysAgo: 1, state: 'complete' },
-  { name: 'Michael Brown', daysAgo: 1, state: 'signedNotUploaded' },
-  { name: 'Emma Wilson', daysAgo: 1, state: 'unsigned' },
-  { name: 'Carlos Mendez', daysAgo: 1, state: 'noNote' },
+  { name: 'Sophia Rossi', daysAgo: 1, state: 'complete', facility: 'Valley View Hospital' },
+  { name: 'Michael Brown', daysAgo: 1, state: 'signedNotUploaded', facility: 'Valley View Hospital' },
+  { name: 'Emma Wilson', daysAgo: 1, state: 'unsigned', facility: 'Cedar Grove Nursing Home' },
+  { name: 'Carlos Mendez', daysAgo: 1, state: 'noNote', facility: 'Sunrise Rehab Center' },
   // Today — just getting started.
-  { name: 'Grace Park', daysAgo: 0, state: 'noNote' },
-  { name: 'Daniel Foster', daysAgo: 0, state: 'noNote' },
-  { name: 'Olivia Martin', daysAgo: 0, state: 'unsigned' },
+  { name: 'Grace Park', daysAgo: 0, state: 'noNote', facility: 'Riverside SNF' },
+  { name: 'Daniel Foster', daysAgo: 0, state: 'noNote', facility: 'Valley View Hospital' },
+  { name: 'Olivia Martin', daysAgo: 0, state: 'unsigned', facility: 'Sunrise Rehab Center' },
 ]
 
 function mockNoteText(name: string): string {
@@ -55,7 +58,7 @@ Continue current physical therapy regimen. Follow up in 4 weeks to reassess prog
 // real to show without clicking through the full flow 15 times by hand.
 export function seedMockPatients(teamId: string): void {
   for (const spec of MOCK_PATIENTS) {
-    const patient = createPatient(spec.name, teamId, daysAgoDateKey(spec.daysAgo))
+    const patient = createPatient(spec.name, teamId, spec.facility, daysAgoDateKey(spec.daysAgo))
     if (spec.state === 'noNote') continue
 
     const noteText = mockNoteText(spec.name)

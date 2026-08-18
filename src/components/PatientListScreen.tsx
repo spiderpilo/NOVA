@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './PatientListScreen.css'
-import { formatDateLabel } from '../lib/dateUtils'
+import { formatDateLabel, todayDateKey } from '../lib/dateUtils'
 import { seedMockPatients } from '../lib/mockPatients'
 import { createPatient, deletePatient, listPatients } from '../lib/patientStore'
 import type { Patient } from '../lib/types'
@@ -48,6 +48,8 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
   const [patients, setPatients] = useState<Patient[]>(() => listPatients(teamId))
   const [filter, setFilter] = useState<PatientFilter>(initialFilter)
   const [newName, setNewName] = useState('')
+  const [newFacility, setNewFacility] = useState('')
+  const [newRoundingDate, setNewRoundingDate] = useState(() => todayDateKey())
   // Armed by a first click on Delete; a second click on the same row
   // actually deletes. Only one row can be armed at a time.
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -67,10 +69,13 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
 
   function handleCreate() {
     const name = newName.trim()
-    if (!name) return
-    createPatient(name, teamId)
+    const facility = newFacility.trim()
+    if (!name || !facility) return
+    createPatient(name, teamId, facility, newRoundingDate || todayDateKey())
     setPatients(listPatients(teamId))
     setNewName('')
+    setNewFacility('')
+    setNewRoundingDate(todayDateKey())
   }
 
   function handleDeleteClick(id: string) {
@@ -142,9 +147,26 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleCreate()
           }}
-          placeholder="New patient name"
+          placeholder="Patient name"
+          className="patient-list-new-name"
         />
-        <button type="button" className="btn" onClick={handleCreate} disabled={!newName.trim()}>
+        <input
+          type="text"
+          value={newFacility}
+          onChange={(e) => setNewFacility(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleCreate()
+          }}
+          placeholder="Facility"
+          className="patient-list-new-facility"
+        />
+        <input
+          type="date"
+          value={newRoundingDate}
+          onChange={(e) => setNewRoundingDate(e.target.value)}
+          className="patient-list-new-date"
+        />
+        <button type="button" className="btn" onClick={handleCreate} disabled={!newName.trim() || !newFacility.trim()}>
           Add Patient
         </button>
       </div>
@@ -170,7 +192,7 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
                   >
                     {p.reworded ? 'Note in progress' : 'No note yet'}
                   </span>{' '}
-                  · {formatDateLabel(p.roundingDate)} · Updated {new Date(p.updatedAt).toLocaleString()}
+                  · {formatDateLabel(p.roundingDate)} · {p.facility} · Updated {new Date(p.updatedAt).toLocaleString()}
                 </span>
               </button>
               <div className="patient-list-item-actions">
