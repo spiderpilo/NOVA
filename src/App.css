@@ -1,7 +1,25 @@
-.app-container {
+/* The single top-level layout for the whole app — TaskBar pinned at the
+   top, everything else (role picker, Patients, Upload Tool, workspace)
+   rendered below it inside .app-page-content. Individual screens size
+   themselves to 100% of that remaining space rather than 100vh, since
+   the TaskBar now claims some of the viewport. */
+.app-shell-root {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  box-sizing: border-box;
+}
+
+.app-page-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   box-sizing: border-box;
 }
 
@@ -12,8 +30,20 @@
 .app-topbar {
   flex: 0 0 auto;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
   padding: var(--gap) var(--gap) 0;
+}
+
+.app-topbar-patient {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.app-topbar-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .app-shell {
@@ -25,6 +55,14 @@
   min-height: 0;
   padding: var(--gap);
   box-sizing: border-box;
+}
+
+/* Providers don't get the Import PDF / Completeness left column — they
+   only review a note the scribe already produced — so the remaining two
+   panels (Suggestions, Output) take the freed-up width instead of leaving
+   a gap. */
+.app-shell-provider {
+  grid-template-columns: minmax(300px, 1fr) 2fr;
 }
 
 .left-column {
@@ -63,7 +101,7 @@
 @media (max-width: 900px) {
   .app-container {
     height: auto;
-    min-height: 100vh;
+    min-height: 100%;
   }
 
   .app-shell {

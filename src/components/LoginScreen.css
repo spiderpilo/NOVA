@@ -1,0 +1,91 @@
+.login-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 28px var(--gap);
+  overflow-y: auto;
+}
+
+.login-screen-content {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-screen-content h1 {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 26px;
+  color: var(--text-h);
+  margin: 0;
+  text-align: center;
+}
+
+.login-screen-subtitle {
+  color: var(--text);
+  font-size: 14px;
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.login-screen-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-team-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.login-member-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  padding: 12px var(--gap);
+  font: inherit;
+  color: var(--text-h);
+  cursor: pointer;
+  text-align: left;
+}
+
+.login-team-card .login-member-row:last-child {
+  border-bottom: none;
+}
+
+.login-member-row:hover {
+  background: var(--accent-bg);
+}
+
+.login-member-row-provider {
+  font-weight: 600;
+}
+
+.login-member-icon {
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.login-member-name {
+  flex: 1 1 auto;
+}
+
+.login-member-role {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+}

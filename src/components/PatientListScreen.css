@@ -1,0 +1,216 @@
+.patient-list-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-width: 640px;
+  margin: 0 auto;
+  height: 100%;
+  padding: 40px var(--gap);
+  box-sizing: border-box;
+}
+
+.patient-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.patient-list-header h1 {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 28px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.patient-list-date-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.patient-list-note {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.patient-list-seed-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.patient-list-seed-link:hover {
+  color: var(--text-h);
+}
+
+.patient-list-filter-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--text-h);
+  font-size: 13px;
+}
+
+.patient-list-new {
+  display: flex;
+  gap: 8px;
+}
+
+.patient-list-new input {
+  flex: 1 1 auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text-h);
+  font: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.patient-list-new input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.patient-list-empty {
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px 16px;
+}
+
+.patient-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.patient-list-item {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid transparent;
+  border-radius: var(--radius);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.patient-list-item:hover {
+  border-top-color: var(--accent-border);
+  border-right-color: var(--accent-border);
+  border-bottom-color: var(--accent-border);
+  background: rgba(147, 51, 234, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -12px rgba(17, 24, 39, 0.35);
+}
+
+/* A thin left stripe marks the currently open patient — deliberately no
+   background fill, so it doesn't compete visually with the hover tint or
+   read like a warning/error state. */
+.patient-list-item-active {
+  border-left-color: var(--accent);
+}
+
+.patient-list-item-select {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 12px 16px;
+}
+
+.patient-list-item-name {
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.patient-list-item-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.patient-list-item-status-signed {
+  color: #16a34a;
+  background: rgba(74, 222, 128, 0.18);
+}
+
+.patient-list-item-status-unsigned {
+  color: var(--text);
+  background: var(--code-bg);
+}
+
+.patient-list-item-meta {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.patient-list-item-note-status-has-note {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.patient-list-item-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+}
+
+.patient-list-item-delete {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.patient-list-item-delete:hover {
+  background: rgba(248, 113, 113, 0.15);
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+.patient-list-item-delete-confirm {
+  background: rgba(248, 113, 113, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+.patient-list-item-delete-confirm:hover {
+  background: #dc2626;
+  color: #ffffff;
+}

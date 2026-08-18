@@ -12,6 +12,12 @@ interface Props {
   onRetry: () => void
   onChange: (text: string) => void
   onDismissDiff: () => void
+  idleMessage?: string
+  showSignOff?: boolean
+  signed?: boolean
+  signedAt?: number | null
+  onSign?: () => void
+  onUnsign?: () => void
 }
 
 interface DiffEditableProps {
@@ -62,7 +68,21 @@ function DiffEditable({ oldText, newText, onChange }: DiffEditableProps) {
   )
 }
 
-function OutputPanel({ status, reworded, previousReworded, error, onRetry, onChange, onDismissDiff }: Props) {
+function OutputPanel({
+  status,
+  reworded,
+  previousReworded,
+  error,
+  onRetry,
+  onChange,
+  onDismissDiff,
+  idleMessage,
+  showSignOff,
+  signed,
+  signedAt,
+  onSign,
+  onUnsign,
+}: Props) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -85,7 +105,9 @@ function OutputPanel({ status, reworded, previousReworded, error, onRetry, onCha
         )}
       </div>
       <div className="panel-content output-content">
-        {status === 'idle' && <p className="output-placeholder">Import a PDF to see the reworded note here.</p>}
+        {status === 'idle' && (
+          <p className="output-placeholder">{idleMessage ?? 'Import a PDF to see the reworded note here.'}</p>
+        )}
         {status === 'loading' && <p className="output-placeholder">Rewording…</p>}
         {status === 'error' && (
           <div className="output-error">
@@ -115,6 +137,27 @@ function OutputPanel({ status, reworded, previousReworded, error, onRetry, onCha
           />
         )}
       </div>
+      {showSignOff && status === 'done' && reworded !== null && (
+        <div className="output-signoff">
+          {signed ? (
+            <>
+              <span className="output-signoff-status output-signoff-status-signed">
+                Signed{signedAt ? ` on ${new Date(signedAt).toLocaleString()}` : ''}
+              </span>
+              <button type="button" className="btn btn-sm" onClick={onUnsign}>
+                Unsign
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="output-signoff-status output-signoff-status-unsigned">Not yet signed</span>
+              <button type="button" className="btn" onClick={onSign}>
+                Sign Note
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </section>
   )
 }

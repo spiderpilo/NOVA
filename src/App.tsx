@@ -1,14 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
+import ChatScreen from './components/ChatScreen'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
+import LoginScreen from './components/LoginScreen'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
+import PatientListScreen, { type PatientFilter } from './components/PatientListScreen'
+import PlaceholderScreen from './components/PlaceholderScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
+import TaskBar from './components/TaskBar'
+import TeamScreen from './components/TeamScreen'
+import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
-import type { NoteType, Role } from './lib/types'
+import { getPatientById, updatePatientNote } from './lib/patientStore'
+import { resolveTeamId } from './lib/teamStore'
+import type { CurrentUser, NoteType, Patient, TeamMember } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
 
@@ -16,6 +25,10 @@ interface PersistedSession {
   extractedText: string | null
   reworded: string | null
   noteType: NoteType
+  selectedPatientId: string | null
+  selectedPatientName: string | null
+  signed: boolean
+  signedAt: number | null
 }
 
 function loadPersistedSession(): PersistedSession | null {
@@ -30,11 +43,21 @@ function loadPersistedSession(): PersistedSession | null {
 function App() {
   const persisted = useRef(loadPersistedSession()).current
 
-  // Not persisted — always starts unset on a fresh load, so the role
-  // picker is an explicit choice every time rather than silently carrying
-  // over to whoever opens the tab next (e.g. a scribe-to-provider handoff
-  // on a shared workstation).
-  const [role, setRole] = useState<Role | null>(null)
+  // Not persisted — always starts unset on a fresh load, so signing in is
+  // an explicit choice every time rather than silently carrying over to
+  // whoever opens the tab next (e.g. a scribe-to-provider handoff on a
+  // shared workstation). Everything else on screen — which team's patients
+  // show up, which role's panels render — is derived from this.
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+
+  // 'home' is the dashboard landing page; 'app' is the note workspace.
+  // 'patients'/'upload'/'instructions'/'chat'/'team' overlay whichever of
+  // those is current — they don't replace the state underneath, so
+  // returning from any of them lands back where you were.
+  const [screen, setScreen] = useState<'home' | 'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('home')
+  const [patientFilter, setPatientFilter] = useState<PatientFilter>({})
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
+  const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
 
   const [rewordStatus, setRewordStatus] = useState<RewordStatus>(persisted?.reworded ? 'done' : 'idle')
   const [reworded, setReworded] = useState<string | null>(persisted?.reworded ?? null)
@@ -42,6 +65,12 @@ function App() {
   const [rewordError, setRewordError] = useState<string | null>(null)
   const [extractedText, setExtractedText] = useState<string | null>(persisted?.extractedText ?? null)
   const [noteType, setNoteType] = useState<NoteType>(persisted?.noteType ?? 'initial')
+
+  // A provider's signature attests to the note text as it stood at sign
+  // time — any further edit (manual or AI-applied) invalidates it, so it
+  // gets cleared automatically rather than silently going stale.
+  const [signed, setSigned] = useState(persisted?.signed ?? false)
+  const [signedAt, setSignedAt] = useState<number | null>(persisted?.signedAt ?? null)
 
   const [completenessStatus, setCompletenessStatus] = useState<CompletenessStatus>('idle')
   const [verdict, setVerdict] = useState<string | null>(null)
@@ -68,7 +97,15 @@ function App() {
   useEffect(() => {
     try {
       if (extractedText || reworded) {
-        const toStore: PersistedSession = { extractedText, reworded, noteType }
+        const toStore: PersistedSession = {
+          extractedText,
+          reworded,
+          noteType,
+          selectedPatientId,
+          selectedPatientName,
+          signed,
+          signedAt,
+        }
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(toStore))
       } else {
         sessionStorage.removeItem(SESSION_STORAGE_KEY)
@@ -77,14 +114,89 @@ function App() {
       // sessionStorage can be unavailable (private browsing, quota) —
       // autosave is a nice-to-have, not something worth surfacing an error for.
     }
-  }, [extractedText, reworded, noteType])
+  }, [extractedText, reworded, noteType, selectedPatientId, selectedPatientName, signed, signedAt])
+
+  // Mirrors the sessionStorage autosave above, but keyed to a specific
+  // patient in localStorage — only runs once a patient has actually been
+  // selected from the Patients screen, so ad-hoc single-note use (no
+  // patient tracking) is unaffected.
+  useEffect(() => {
+    if (!selectedPatientId) return
+    updatePatientNote(selectedPatientId, { noteType, extractedText, reworded, signed, signedAt })
+  }, [selectedPatientId, noteType, extractedText, reworded, signed, signedAt])
+
+  // Loads a patient's stored note into the workspace, the same way a fresh
+  // PDF import would — extractedText changing is what the Chat/Suggestions
+  // panels already key their per-document resets off of, so switching
+  // patients naturally clears any leftover chat draft or stale suggestion
+  // selection from whoever was open before.
+  function handleSelectPatient(patient: Patient) {
+    setSelectedPatientId(patient.id)
+    setSelectedPatientName(patient.name)
+    setNoteType(patient.noteType)
+    setExtractedText(patient.extractedText)
+    setReworded(patient.reworded)
+    setPreviousReworded(null)
+    setRewordError(null)
+    setRewordStatus(patient.reworded ? 'done' : 'idle')
+    setSigned(patient.signed ?? false)
+    setSignedAt(patient.signedAt ?? null)
+    lastOperationRef.current = null
+    setNoteVersion((v) => v + 1)
+    if (patient.reworded) {
+      runCompletenessCheck(patient.reworded)
+    } else {
+      setCompletenessStatus('idle')
+      setVerdict(null)
+      setMissingItems([])
+    }
+    setScreen('app')
+  }
+
+  // Shared by handleDeletePatient (the deleted patient was open) and
+  // handleSignOut (privacy — the next person to sign in on a shared
+  // workstation shouldn't see a leftover note from whoever was here
+  // before, especially now that it could belong to a different team).
+  function resetWorkspace() {
+    setSelectedPatientId(null)
+    setSelectedPatientName(null)
+    setNoteType('initial')
+    setExtractedText(null)
+    setReworded(null)
+    setPreviousReworded(null)
+    setRewordError(null)
+    setRewordStatus('idle')
+    setCompletenessStatus('idle')
+    setVerdict(null)
+    setMissingItems([])
+    setSigned(false)
+    setSignedAt(null)
+    setNoteVersion((v) => v + 1)
+  }
+
+  function handleDeletePatient(id: string) {
+    if (id !== selectedPatientId) return
+    resetWorkspace()
+  }
 
   function applyRewordResult(result: string, baseline: string | null) {
     setPreviousReworded(baseline)
     setReworded(result)
     setRewordStatus('done')
+    setSigned(false)
+    setSignedAt(null)
     setNoteVersion((v) => v + 1)
     runCompletenessCheck(result)
+  }
+
+  function handleSignNote() {
+    setSigned(true)
+    setSignedAt(Date.now())
+  }
+
+  function handleUnsignNote() {
+    setSigned(false)
+    setSignedAt(null)
   }
 
   async function runReword(text: string) {
@@ -159,6 +271,10 @@ function App() {
   // Only handleDismissDiff (the "Clear highlights" button) drops it.
   function handleOutputChange(text: string) {
     setReworded(text)
+    if (signed) {
+      setSigned(false)
+      setSignedAt(null)
+    }
   }
 
   function handleDismissDiff() {
@@ -170,48 +286,141 @@ function App() {
     if (text) runCompletenessCheck(text)
   }
 
-  if (!role) {
-    return <RoleSelectScreen onSelect={setRole} />
+  function handleOpenPatients(filter: PatientFilter = {}) {
+    setPatientFilter(filter)
+    setScreen('patients')
+  }
+
+  function handleOpenPatientNoteFromChat(patientId: string) {
+    const patient = getPatientById(patientId)
+    if (!patient) return
+    handleSelectPatient(patient)
+  }
+
+  // Picking a name on LoginScreen is what "logging in" means for this
+  // prototype — it sets both role and team for the session in one step.
+  function handleLogin(member: TeamMember) {
+    setCurrentUser({ id: member.id, name: member.name, role: member.role, teamId: resolveTeamId(member) })
+    setScreen('home')
+  }
+
+  function handleSignOut() {
+    resetWorkspace()
+    setCurrentUser(null)
+    setScreen('home')
+  }
+
+  let pageContent: ReactNode
+
+  // The single canonical "go home" action, used by the TaskBar's Home
+  // button regardless of which screen it's clicked from.
+  function handleGoHome() {
+    setScreen('home')
+  }
+
+  if (!currentUser) {
+    pageContent = <LoginScreen onLogin={handleLogin} />
+  } else if (screen === 'patients') {
+    pageContent = (
+      <PatientListScreen
+        teamId={currentUser.teamId}
+        activePatientId={selectedPatientId}
+        initialFilter={patientFilter}
+        onSelect={handleSelectPatient}
+        onDelete={handleDeletePatient}
+      />
+    )
+  } else if (screen === 'upload') {
+    pageContent = <UploadToolScreen teamId={currentUser.teamId} />
+  } else if (screen === 'instructions') {
+    pageContent = <PlaceholderScreen title="Instructions" message="Guidance and how-tos for using NOVA are coming soon." />
+  } else if (screen === 'chat') {
+    pageContent = (
+      <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
+    )
+  } else if (screen === 'team') {
+    pageContent = <TeamScreen currentUser={currentUser} />
+  } else if (screen === 'home') {
+    pageContent = (
+      <RoleSelectScreen
+        teamId={currentUser.teamId}
+        onOpenAllPatients={() => handleOpenPatients()}
+        onOpenAwaitingSignature={() => handleOpenPatients({ status: 'awaitingSignature' })}
+        onOpenNeedsUpload={() => setScreen('upload')}
+        onOpenNoNoteYet={() => handleOpenPatients({ status: 'noNote' })}
+        onOpenRoundingDate={(date) => handleOpenPatients({ roundingDate: date })}
+      />
+    )
+  } else {
+    const role = currentUser.role
+    pageContent = (
+      <div className="app-container">
+        <div className="app-topbar">
+          <span className="app-topbar-patient">
+            {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
+          </span>
+          <div className="app-topbar-actions">
+            <button type="button" className="btn btn-sm" onClick={() => handleOpenPatients()}>
+              Patients
+            </button>
+          </div>
+        </div>
+        <div className={role === 'provider' ? 'app-shell app-shell-provider' : 'app-shell'}>
+          {role === 'scribe' && (
+            <div className="left-column">
+              <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
+              <CompletenessPanel
+                status={completenessStatus}
+                verdict={verdict}
+                missingItems={missingItems}
+                onRecheck={handleRecheckCompleteness}
+              />
+            </div>
+          )}
+          {role === 'scribe' && (
+            <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
+          )}
+          {role === 'provider' && (
+            <SuggestionsPanel
+              noteText={reworded}
+              originalText={extractedText}
+              noteVersion={noteVersion}
+              onApply={handleApplySuggestions}
+            />
+          )}
+          <OutputPanel
+            status={rewordStatus}
+            reworded={reworded}
+            previousReworded={previousReworded}
+            error={rewordError}
+            onRetry={handleRetryReword}
+            onChange={handleOutputChange}
+            onDismissDiff={handleDismissDiff}
+            idleMessage={role === 'provider' ? 'Select a patient to review their note.' : undefined}
+            showSignOff={role === 'provider'}
+            signed={signed}
+            signedAt={signedAt}
+            onSign={handleSignNote}
+            onUnsign={handleUnsignNote}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="app-container">
-      <div className="app-topbar">
-        <button type="button" className="btn btn-sm" onClick={() => setRole(null)}>
-          Switch role
-        </button>
-      </div>
-      <div className="app-shell">
-        <div className="left-column">
-          <ImportPdfPanel noteType={noteType} onNoteTypeChange={setNoteType} onExtracted={handleExtracted} />
-          <CompletenessPanel
-            status={completenessStatus}
-            verdict={verdict}
-            missingItems={missingItems}
-            onRecheck={handleRecheckCompleteness}
-          />
-        </div>
-        {role === 'scribe' && (
-          <ChatPanel extractedText={extractedText} currentNoteText={reworded} onAnswer={handleChatAnswer} />
-        )}
-        {role === 'provider' && (
-          <SuggestionsPanel
-            noteText={reworded}
-            originalText={extractedText}
-            noteVersion={noteVersion}
-            onApply={handleApplySuggestions}
-          />
-        )}
-        <OutputPanel
-          status={rewordStatus}
-          reworded={reworded}
-          previousReworded={previousReworded}
-          error={rewordError}
-          onRetry={handleRetryReword}
-          onChange={handleOutputChange}
-          onDismissDiff={handleDismissDiff}
-        />
-      </div>
+    <div className="app-shell-root">
+      <TaskBar
+        currentUser={currentUser}
+        onHome={handleGoHome}
+        onOpenChat={() => setScreen('chat')}
+        onOpenInstructions={() => setScreen('instructions')}
+        onOpenPatients={() => handleOpenPatients()}
+        onOpenTeam={() => setScreen('team')}
+        onOpenUploadTool={() => setScreen('upload')}
+        onSignOut={handleSignOut}
+      />
+      <div className="app-page-content">{pageContent}</div>
     </div>
   )
 }
