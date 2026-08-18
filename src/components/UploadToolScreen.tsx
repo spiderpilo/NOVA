@@ -4,14 +4,18 @@ import { downloadNotePdf } from '../lib/pdfGenerate'
 import { listPatients, markPatientUploaded } from '../lib/patientStore'
 import type { Patient } from '../lib/types'
 
-function UploadToolScreen() {
-  const [patients, setPatients] = useState<Patient[]>(() => listPatients().filter((p) => p.signed))
+interface Props {
+  teamId: string
+}
+
+function UploadToolScreen({ teamId }: Props) {
+  const [patients, setPatients] = useState<Patient[]>(() => listPatients(teamId).filter((p) => p.signed))
 
   function handleUpload(patient: Patient) {
     if (!patient.reworded) return
     downloadNotePdf(patient.name, patient.reworded)
     markPatientUploaded(patient.id)
-    setPatients(listPatients().filter((p) => p.signed))
+    setPatients(listPatients(teamId).filter((p) => p.signed))
   }
 
   return (

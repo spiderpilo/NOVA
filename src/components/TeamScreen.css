@@ -131,6 +131,22 @@
   border-radius: 999px;
 }
 
+.team-you-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.team-scribe-row .team-you-badge {
+  margin-left: auto;
+}
+
 .team-scribes-list {
   display: flex;
   flex-direction: column;

@@ -53,9 +53,9 @@ Continue current physical therapy regimen. Follow up in 4 weeks to reassess prog
 // not uploaded, and fully complete — across 4 rounding dates, so the
 // Patients screen and home-page stats/rounding-date list have something
 // real to show without clicking through the full flow 15 times by hand.
-export function seedMockPatients(): void {
+export function seedMockPatients(teamId: string): void {
   for (const spec of MOCK_PATIENTS) {
-    const patient = createPatient(spec.name, daysAgoDateKey(spec.daysAgo))
+    const patient = createPatient(spec.name, teamId, daysAgoDateKey(spec.daysAgo))
     if (spec.state === 'noNote') continue
 
     const noteText = mockNoteText(spec.name)

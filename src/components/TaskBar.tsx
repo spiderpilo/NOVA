@@ -1,36 +1,26 @@
-import {
-  BookOpen,
-  ChevronDown,
-  ClipboardList,
-  Home,
-  LogIn,
-  LogOut,
-  MessageCircle,
-  Upload,
-  UserCircle,
-  Users,
-} from 'lucide-react'
+import { BookOpen, ChevronDown, ClipboardList, Home, LogOut, MessageCircle, Upload, UserCircle, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import './TaskBar.css'
 import orcaIcon from '../assets/orca-icon.png'
+import type { CurrentUser } from '../lib/types'
 
 interface Props {
+  currentUser: CurrentUser | null
   onHome: () => void
   onOpenChat: () => void
   onOpenInstructions: () => void
   onOpenPatients: () => void
   onOpenTeam: () => void
   onOpenUploadTool: () => void
+  onSignOut: () => void
 }
 
 // Home, Instructions, Chat, Team, Patients, and Upload all go somewhere
-// real now. Sign In/Out (under Profile) is still visual-only local state
-// — no real account system to back it yet. Role (Provider/Scribe) isn't
-// picked here anymore — it's set automatically by whichever entry point
-// you used to reach a patient (see App.tsx's handleOpenPatients).
-function TaskBar({ onHome, onOpenChat, onOpenInstructions, onOpenPatients, onOpenTeam, onOpenUploadTool }: Props) {
+// real now. The Profile dropdown shows whoever is actually signed in (see
+// LoginScreen/App.tsx's handleLogin) — there's no separate sign-in action
+// here, since signing in is the app's full-page gate, not a menu item.
+function TaskBar({ currentUser, onHome, onOpenChat, onOpenInstructions, onOpenPatients, onOpenTeam, onOpenUploadTool, onSignOut }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
-  const [signedIn, setSignedIn] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -44,9 +34,9 @@ function TaskBar({ onHome, onOpenChat, onOpenInstructions, onOpenPatients, onOpe
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [profileOpen])
 
-  function handleToggleSignedIn() {
+  function handleSignOut() {
     setProfileOpen(false)
-    setSignedIn((s) => !s)
+    onSignOut()
   }
 
   return (
@@ -80,21 +70,23 @@ function TaskBar({ onHome, onOpenChat, onOpenInstructions, onOpenPatients, onOpe
           <Upload size={17} />
           Upload
         </button>
-        <div className="task-bar-dropdown" ref={profileRef}>
-          <button type="button" className="task-bar-button" onClick={() => setProfileOpen((open) => !open)}>
-            <UserCircle size={17} />
-            Profile
-            <ChevronDown size={14} />
-          </button>
-          {profileOpen && (
-            <div className="task-bar-dropdown-menu">
-              <button type="button" className="task-bar-dropdown-item" onClick={handleToggleSignedIn}>
-                {signedIn ? <LogOut size={16} /> : <LogIn size={16} />}
-                {signedIn ? 'Sign Out' : 'Sign In'}
-              </button>
-            </div>
-          )}
-        </div>
+        {currentUser && (
+          <div className="task-bar-dropdown" ref={profileRef}>
+            <button type="button" className="task-bar-button" onClick={() => setProfileOpen((open) => !open)}>
+              <UserCircle size={17} />
+              {currentUser.name}
+              <ChevronDown size={14} />
+            </button>
+            {profileOpen && (
+              <div className="task-bar-dropdown-menu">
+                <button type="button" className="task-bar-dropdown-item" onClick={handleSignOut}>
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

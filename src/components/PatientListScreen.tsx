@@ -23,6 +23,7 @@ const STATUS_LABELS: Record<PatientStatusFilter, string> = {
 }
 
 interface Props {
+  teamId: string
   activePatientId: string | null
   initialFilter?: PatientFilter
   onSelect: (patient: Patient) => void
@@ -43,8 +44,8 @@ function describeFilter(filter: PatientFilter): string {
   return parts.join(' · ')
 }
 
-function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDelete }: Props) {
-  const [patients, setPatients] = useState<Patient[]>(() => listPatients())
+function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSelect, onDelete }: Props) {
+  const [patients, setPatients] = useState<Patient[]>(() => listPatients(teamId))
   const [filter, setFilter] = useState<PatientFilter>(initialFilter)
   const [newName, setNewName] = useState('')
   // Armed by a first click on Delete; a second click on the same row
@@ -67,8 +68,8 @@ function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDe
   function handleCreate() {
     const name = newName.trim()
     if (!name) return
-    createPatient(name)
-    setPatients(listPatients())
+    createPatient(name, teamId)
+    setPatients(listPatients(teamId))
     setNewName('')
   }
 
@@ -78,14 +79,14 @@ function PatientListScreen({ activePatientId, initialFilter = {}, onSelect, onDe
       return
     }
     deletePatient(id)
-    setPatients(listPatients())
+    setPatients(listPatients(teamId))
     setConfirmDeleteId(null)
     onDelete(id)
   }
 
   function handleSeedMockPatients() {
-    seedMockPatients()
-    setPatients(listPatients())
+    seedMockPatients(teamId)
+    setPatients(listPatients(teamId))
   }
 
   return (

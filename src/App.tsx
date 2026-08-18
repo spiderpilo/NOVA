@@ -4,6 +4,7 @@ import ChatPanel from './components/ChatPanel'
 import ChatScreen from './components/ChatScreen'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
+import LoginScreen from './components/LoginScreen'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
 import PatientListScreen, { type PatientFilter } from './components/PatientListScreen'
 import PlaceholderScreen from './components/PlaceholderScreen'
@@ -15,7 +16,8 @@ import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
 import { getPatientById, updatePatientNote } from './lib/patientStore'
-import type { NoteType, Patient, Role } from './lib/types'
+import { resolveTeamId } from './lib/teamStore'
+import type { CurrentUser, NoteType, Patient, TeamMember } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
 
@@ -41,17 +43,18 @@ function loadPersistedSession(): PersistedSession | null {
 function App() {
   const persisted = useRef(loadPersistedSession()).current
 
-  // Not persisted — always starts unset on a fresh load, so the role
-  // picker is an explicit choice every time rather than silently carrying
-  // over to whoever opens the tab next (e.g. a scribe-to-provider handoff
-  // on a shared workstation).
-  const [role, setRole] = useState<Role | null>(null)
+  // Not persisted — always starts unset on a fresh load, so signing in is
+  // an explicit choice every time rather than silently carrying over to
+  // whoever opens the tab next (e.g. a scribe-to-provider handoff on a
+  // shared workstation). Everything else on screen — which team's patients
+  // show up, which role's panels render — is derived from this.
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
-  // 'patients'/'upload'/'instructions'/'chat'/'team' overlay the picker or
-  // the workspace, whichever is current — they don't replace the
-  // role/workspace state underneath, so returning from any of them lands
-  // back where you were.
-  const [screen, setScreen] = useState<'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('app')
+  // 'home' is the dashboard landing page; 'app' is the note workspace.
+  // 'patients'/'upload'/'instructions'/'chat'/'team' overlay whichever of
+  // those is current — they don't replace the state underneath, so
+  // returning from any of them lands back where you were.
+  const [screen, setScreen] = useState<'home' | 'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('home')
   const [patientFilter, setPatientFilter] = useState<PatientFilter>({})
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
@@ -150,8 +153,11 @@ function App() {
     setScreen('app')
   }
 
-  function handleDeletePatient(id: string) {
-    if (id !== selectedPatientId) return
+  // Shared by handleDeletePatient (the deleted patient was open) and
+  // handleSignOut (privacy — the next person to sign in on a shared
+  // workstation shouldn't see a leftover note from whoever was here
+  // before, especially now that it could belong to a different team).
+  function resetWorkspace() {
     setSelectedPatientId(null)
     setSelectedPatientName(null)
     setNoteType('initial')
@@ -166,6 +172,11 @@ function App() {
     setSigned(false)
     setSignedAt(null)
     setNoteVersion((v) => v + 1)
+  }
+
+  function handleDeletePatient(id: string) {
+    if (id !== selectedPatientId) return
+    resetWorkspace()
   }
 
   function applyRewordResult(result: string, baseline: string | null) {
@@ -275,29 +286,28 @@ function App() {
     if (text) runCompletenessCheck(text)
   }
 
-  // Reaching the Patients screen without a role already picked (the
-  // TaskBar's direct Patients button, or a home-page stat tile) still
-  // needs *some* role, or selecting a patient bounces back to the empty
-  // landing screen instead of a real workspace — default to Scribe unless
-  // the entry point implies a specific one (reviewing signatures implies
-  // Provider, an empty note implies Scribe).
-  function handleOpenPatients(filter: PatientFilter = {}, roleOverride?: Role) {
-    if (roleOverride) {
-      setRole(roleOverride)
-    } else if (!role) {
-      setRole('scribe')
-    }
+  function handleOpenPatients(filter: PatientFilter = {}) {
     setPatientFilter(filter)
     setScreen('patients')
   }
 
-  // Clicking a patient mention in Team Chat — same role-defaulting need as
-  // handleOpenPatients above, since Chat is reachable with no role picked.
   function handleOpenPatientNoteFromChat(patientId: string) {
     const patient = getPatientById(patientId)
     if (!patient) return
-    if (!role) setRole('scribe')
     handleSelectPatient(patient)
+  }
+
+  // Picking a name on LoginScreen is what "logging in" means for this
+  // prototype — it sets both role and team for the session in one step.
+  function handleLogin(member: TeamMember) {
+    setCurrentUser({ id: member.id, name: member.name, role: member.role, teamId: resolveTeamId(member) })
+    setScreen('home')
+  }
+
+  function handleSignOut() {
+    resetWorkspace()
+    setCurrentUser(null)
+    setScreen('home')
   }
 
   let pageContent: ReactNode
@@ -305,13 +315,15 @@ function App() {
   // The single canonical "go home" action, used by the TaskBar's Home
   // button regardless of which screen it's clicked from.
   function handleGoHome() {
-    setRole(null)
-    setScreen('app')
+    setScreen('home')
   }
 
-  if (screen === 'patients') {
+  if (!currentUser) {
+    pageContent = <LoginScreen onLogin={handleLogin} />
+  } else if (screen === 'patients') {
     pageContent = (
       <PatientListScreen
+        teamId={currentUser.teamId}
         activePatientId={selectedPatientId}
         initialFilter={patientFilter}
         onSelect={handleSelectPatient}
@@ -319,24 +331,28 @@ function App() {
       />
     )
   } else if (screen === 'upload') {
-    pageContent = <UploadToolScreen />
+    pageContent = <UploadToolScreen teamId={currentUser.teamId} />
   } else if (screen === 'instructions') {
     pageContent = <PlaceholderScreen title="Instructions" message="Guidance and how-tos for using NOVA are coming soon." />
   } else if (screen === 'chat') {
-    pageContent = <ChatScreen onOpenPatientNote={handleOpenPatientNoteFromChat} />
+    pageContent = (
+      <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
+    )
   } else if (screen === 'team') {
-    pageContent = <TeamScreen />
-  } else if (!role) {
+    pageContent = <TeamScreen currentUser={currentUser} />
+  } else if (screen === 'home') {
     pageContent = (
       <RoleSelectScreen
+        teamId={currentUser.teamId}
         onOpenAllPatients={() => handleOpenPatients()}
-        onOpenAwaitingSignature={() => handleOpenPatients({ status: 'awaitingSignature' }, 'provider')}
+        onOpenAwaitingSignature={() => handleOpenPatients({ status: 'awaitingSignature' })}
         onOpenNeedsUpload={() => setScreen('upload')}
-        onOpenNoNoteYet={() => handleOpenPatients({ status: 'noNote' }, 'scribe')}
+        onOpenNoNoteYet={() => handleOpenPatients({ status: 'noNote' })}
         onOpenRoundingDate={(date) => handleOpenPatients({ roundingDate: date })}
       />
     )
   } else {
+    const role = currentUser.role
     pageContent = (
       <div className="app-container">
         <div className="app-topbar">
@@ -395,12 +411,14 @@ function App() {
   return (
     <div className="app-shell-root">
       <TaskBar
+        currentUser={currentUser}
         onHome={handleGoHome}
         onOpenChat={() => setScreen('chat')}
         onOpenInstructions={() => setScreen('instructions')}
         onOpenPatients={() => handleOpenPatients()}
         onOpenTeam={() => setScreen('team')}
         onOpenUploadTool={() => setScreen('upload')}
+        onSignOut={handleSignOut}
       />
       <div className="app-page-content">{pageContent}</div>
     </div>

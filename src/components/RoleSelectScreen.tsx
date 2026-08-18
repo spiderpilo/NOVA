@@ -5,6 +5,7 @@ import { formatDateLabel } from '../lib/dateUtils'
 import { listPatients, listRoundingDates } from '../lib/patientStore'
 
 interface Props {
+  teamId: string
   onOpenAllPatients: () => void
   onOpenAwaitingSignature: () => void
   onOpenNeedsUpload: () => void
@@ -12,24 +13,22 @@ interface Props {
   onOpenRoundingDate: (date: string) => void
 }
 
-// Temporarily just a placeholder plus a patient summary — there's no
-// explicit role picker anymore, Provider/Scribe gets set automatically by
-// whichever entry point you use to reach a patient. The rest of this page
-// (branding, intro copy) will come back once it's redesigned around the
-// new TaskBar.
+// The home dashboard, scoped to the signed-in user's own team — every
+// figure here is that team's patients only, not the whole practice's.
 function RoleSelectScreen({
+  teamId,
   onOpenAllPatients,
   onOpenAwaitingSignature,
   onOpenNeedsUpload,
   onOpenNoNoteYet,
   onOpenRoundingDate,
 }: Props) {
-  const patients = listPatients()
+  const patients = listPatients(teamId)
   const total = patients.length
   const awaitingSignature = patients.filter((p) => p.reworded && !p.signed).length
   const needsUpload = patients.filter((p) => p.signed && !p.uploaded).length
   const noNoteYet = patients.filter((p) => !p.reworded).length
-  const roundingDates = listRoundingDates()
+  const roundingDates = listRoundingDates(teamId)
 
   return (
     <div className="role-select-screen">

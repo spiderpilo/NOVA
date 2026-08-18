@@ -6,18 +6,20 @@ import { encodeMention, parseMessageTokens } from '../lib/mentionUtils'
 import { listPatients } from '../lib/patientStore'
 import type { Patient, TeamChatMessage } from '../lib/types'
 
-const CURRENT_USER = 'You'
 const MAX_MENTION_RESULTS = 6
 
 interface Props {
+  teamId: string
+  currentUserName: string
   onOpenPatientNote: (patientId: string) => void
 }
 
 // A team channel, not the AI interview — providers/scribes reference
 // patients constantly here, so typing "@" opens a patient picker and the
 // resulting mention is a clickable chip that jumps straight to that
-// patient's note (see App.tsx's handleOpenPatientNoteFromChat).
-function ChatScreen({ onOpenPatientNote }: Props) {
+// patient's note (see App.tsx's handleOpenPatientNoteFromChat). The mention
+// picker only offers your own team's patients, same as everywhere else.
+function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
   const [messages, setMessages] = useState<TeamChatMessage[]>(() => {
     // First-run seed so the channel doesn't look broken/empty — only once,
     // never re-seeded on later visits.
@@ -35,7 +37,7 @@ function ChatScreen({ onOpenPatientNote }: Props) {
 
   const mentionMatches =
     mentionQuery !== null
-      ? listPatients()
+      ? listPatients(teamId)
           .filter((p) => p.name.toLowerCase().includes(mentionQuery.toLowerCase()))
           .slice(0, MAX_MENTION_RESULTS)
       : []
@@ -84,7 +86,7 @@ function ChatScreen({ onOpenPatientNote }: Props) {
   function handleSend() {
     const text = input.trim()
     if (!text) return
-    addMessage(CURRENT_USER, text)
+    addMessage(currentUserName, text)
     setMessages(listMessages())
     setInput('')
     setMentionStart(null)

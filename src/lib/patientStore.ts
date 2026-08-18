@@ -1,10 +1,28 @@
 import { dateKey, todayDateKey } from './dateUtils'
+import { listTeamMembers } from './teamStore'
 import type { NoteType, Patient } from './types'
 
 // localStorage rather than sessionStorage — patients need to survive a tab
 // close, unlike the single-document autosave in App.tsx. This is a local
 // test-run stand-in; a real deployment would back this with a server.
 const PATIENTS_KEY = 'nova:patients'
+
+// Patients saved before team scoping existed have no teamId — split them
+// round-robin across the seeded providers so an existing test run still
+// demonstrates per-team scoping instead of every legacy patient silently
+// disappearing from every team's list.
+function backfillTeamId(patients: Patient[]): Patient[] {
+  if (patients.every((p) => p.teamId)) return patients
+  const providers = listTeamMembers().filter((m) => m.role === 'provider')
+  if (providers.length === 0) return patients
+  let index = 0
+  return patients.map((p) => {
+    if (p.teamId) return p
+    const provider = providers[index % providers.length]
+    index += 1
+    return { ...p, teamId: provider.id }
+  })
+}
 
 function readAll(): Patient[] {
   try {
@@ -16,7 +34,10 @@ function readAll(): Patient[] {
     // whole page, since nothing here has an error boundary. Best guess is
     // their creation date, since that's the closest thing to "which day's
     // rounds they were part of" for a record that predates the concept.
-    return patients.map((p) => (p.roundingDate ? p : { ...p, roundingDate: dateKey(new Date(p.createdAt)) }))
+    const withRoundingDate = patients.map((p) =>
+      p.roundingDate ? p : { ...p, roundingDate: dateKey(new Date(p.createdAt)) },
+    )
+    return backfillTeamId(withRoundingDate)
   } catch {
     return []
   }
@@ -30,8 +51,10 @@ function writeAll(patients: Patient[]) {
   }
 }
 
-export function listPatients(): Patient[] {
-  return readAll().sort((a, b) => b.updatedAt - a.updatedAt)
+export function listPatients(teamId: string): Patient[] {
+  return readAll()
+    .filter((p) => p.teamId === teamId)
+    .sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
 export function getPatientById(id: string): Patient | null {
@@ -41,7 +64,7 @@ export function getPatientById(id: string): Patient | null {
 // roundingDate defaults to today — a patient added through the normal "Add
 // Patient" flow is added as part of today's rounds. Mock/seed data passes
 // an explicit past date to backfill a realistic rounding-date history.
-export function createPatient(name: string, roundingDate: string = todayDateKey()): Patient {
+export function createPatient(name: string, teamId: string, roundingDate: string = todayDateKey()): Patient {
   const now = Date.now()
   const patient: Patient = {
     id: crypto.randomUUID(),
@@ -56,6 +79,7 @@ export function createPatient(name: string, roundingDate: string = todayDateKey(
     uploaded: false,
     uploadedAt: null,
     roundingDate,
+    teamId,
   }
   writeAll([...readAll(), patient])
   return patient
@@ -103,9 +127,9 @@ export interface RoundingDateSummary {
 // note, a provider signature, and an upload — the full pipeline, not just
 // one stage of it. Sorted newest-first, since a provider opening this is
 // almost always checking on today's or yesterday's rounds first.
-export function listRoundingDates(): RoundingDateSummary[] {
+export function listRoundingDates(teamId: string): RoundingDateSummary[] {
   const byDate = new Map<string, Patient[]>()
-  for (const p of readAll()) {
+  for (const p of readAll().filter((p) => p.teamId === teamId)) {
     const group = byDate.get(p.roundingDate) ?? []
     group.push(p)
     byDate.set(p.roundingDate, group)
