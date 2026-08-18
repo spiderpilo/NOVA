@@ -4,7 +4,7 @@ import ChatPanel from './components/ChatPanel'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
-import PatientListScreen from './components/PatientListScreen'
+import PatientListScreen, { type PatientFilter } from './components/PatientListScreen'
 import PlaceholderScreen from './components/PlaceholderScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
@@ -50,6 +50,7 @@ function App() {
   // role/workspace state underneath, so returning from any of them lands
   // back where you were.
   const [screen, setScreen] = useState<'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('app')
+  const [patientFilter, setPatientFilter] = useState<PatientFilter>('all')
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
 
@@ -279,6 +280,22 @@ function App() {
     setScreen('patients')
   }
 
+  // Reaching the Patients screen without a role already picked (the
+  // TaskBar's direct Patients button, or a home-page stat tile) still
+  // needs *some* role, or selecting a patient bounces back to the empty
+  // landing screen instead of a real workspace — default to Scribe unless
+  // the entry point implies a specific one (reviewing signatures implies
+  // Provider, an empty note implies Scribe).
+  function handleOpenPatients(filter: PatientFilter = 'all', roleOverride?: Role) {
+    if (roleOverride) {
+      setRole(roleOverride)
+    } else if (!role) {
+      setRole('scribe')
+    }
+    setPatientFilter(filter)
+    setScreen('patients')
+  }
+
   let pageContent: ReactNode
 
   // The single canonical "go home" action, used by the TaskBar's Home
@@ -290,7 +307,12 @@ function App() {
 
   if (screen === 'patients') {
     pageContent = (
-      <PatientListScreen activePatientId={selectedPatientId} onSelect={handleSelectPatient} onDelete={handleDeletePatient} />
+      <PatientListScreen
+        activePatientId={selectedPatientId}
+        initialFilter={patientFilter}
+        onSelect={handleSelectPatient}
+        onDelete={handleDeletePatient}
+      />
     )
   } else if (screen === 'upload') {
     pageContent = <UploadToolScreen />
@@ -301,7 +323,13 @@ function App() {
   } else if (screen === 'team') {
     pageContent = <PlaceholderScreen title="Team" message="Team management is coming soon." />
   } else if (!role) {
-    pageContent = <RoleSelectScreen onOpenPatients={() => setScreen('patients')} />
+    pageContent = (
+      <RoleSelectScreen
+        onOpenAllPatients={() => handleOpenPatients()}
+        onOpenAwaitingSignature={() => handleOpenPatients('awaitingSignature', 'provider')}
+        onOpenNoNoteYet={() => handleOpenPatients('noNote', 'scribe')}
+      />
+    )
   } else {
     pageContent = (
       <div className="app-container">
@@ -310,7 +338,7 @@ function App() {
             {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
           </span>
           <div className="app-topbar-actions">
-            <button type="button" className="btn btn-sm" onClick={() => setScreen('patients')}>
+            <button type="button" className="btn btn-sm" onClick={() => handleOpenPatients()}>
               Patients
             </button>
           </div>
@@ -364,7 +392,7 @@ function App() {
         onHome={handleGoHome}
         onOpenChat={() => setScreen('chat')}
         onOpenInstructions={() => setScreen('instructions')}
-        onOpenPatients={() => setScreen('patients')}
+        onOpenPatients={() => handleOpenPatients()}
         onOpenTeam={() => setScreen('team')}
         onOpenUploadTool={() => setScreen('upload')}
         onSelectRole={handleChooseRole}

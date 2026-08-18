@@ -4,18 +4,35 @@ import { seedMockPatients } from '../lib/mockPatients'
 import { createPatient, deletePatient, listPatients } from '../lib/patientStore'
 import type { Patient } from '../lib/types'
 
+export type PatientFilter = 'all' | 'noNote' | 'awaitingSignature'
+
+const FILTER_LABELS: Record<Exclude<PatientFilter, 'all'>, string> = {
+  noNote: 'No note yet',
+  awaitingSignature: 'Awaiting provider signature',
+}
+
 interface Props {
   activePatientId: string | null
+  initialFilter?: PatientFilter
   onSelect: (patient: Patient) => void
   onDelete: (id: string) => void
 }
 
-function PatientListScreen({ activePatientId, onSelect, onDelete }: Props) {
+function matchesFilter(p: Patient, filter: PatientFilter): boolean {
+  if (filter === 'noNote') return !p.reworded
+  if (filter === 'awaitingSignature') return Boolean(p.reworded) && !p.signed
+  return true
+}
+
+function PatientListScreen({ activePatientId, initialFilter = 'all', onSelect, onDelete }: Props) {
   const [patients, setPatients] = useState<Patient[]>(() => listPatients())
+  const [filter, setFilter] = useState<PatientFilter>(initialFilter)
   const [newName, setNewName] = useState('')
   // Armed by a first click on Delete; a second click on the same row
   // actually deletes. Only one row can be armed at a time.
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  const visiblePatients = patients.filter((p) => matchesFilter(p, filter))
 
   function handleCreate() {
     const name = newName.trim()
@@ -54,6 +71,17 @@ function PatientListScreen({ activePatientId, onSelect, onDelete }: Props) {
         </button>
       </p>
 
+      {filter !== 'all' && (
+        <div className="patient-list-filter-banner">
+          <span>
+            Showing: {FILTER_LABELS[filter]} ({visiblePatients.length})
+          </span>
+          <button type="button" className="patient-list-seed-link" onClick={() => setFilter('all')}>
+            Show all patients
+          </button>
+        </div>
+      )}
+
       <div className="patient-list-new">
         <input
           type="text"
@@ -69,11 +97,15 @@ function PatientListScreen({ activePatientId, onSelect, onDelete }: Props) {
         </button>
       </div>
 
-      {patients.length === 0 ? (
-        <p className="patient-list-empty">No patients yet — add one above to get started.</p>
+      {visiblePatients.length === 0 ? (
+        <p className="patient-list-empty">
+          {filter === 'all'
+            ? 'No patients yet — add one above to get started.'
+            : `No patients matching "${FILTER_LABELS[filter as Exclude<PatientFilter, 'all'>]}".`}
+        </p>
       ) : (
         <ul className="patient-list">
-          {patients.map((p) => (
+          {visiblePatients.map((p) => (
             <li
               key={p.id}
               className={p.id === activePatientId ? 'patient-list-item patient-list-item-active' : 'patient-list-item'}

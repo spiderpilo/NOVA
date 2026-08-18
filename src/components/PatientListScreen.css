@@ -43,6 +43,19 @@
   color: var(--text-h);
 }
 
+.patient-list-filter-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--text-h);
+  font-size: 13px;
+}
+
 .patient-list-new {
   display: flex;
   gap: 8px;
