@@ -1,12 +1,15 @@
 import { Send } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import './ChatScreen.css'
-import { addMessage, listMessages } from '../lib/chatStore'
+import { ApiError, fetchTeamMessages, postTeamMessage } from '../lib/apiClient'
 import { encodeMention, parseMessageTokens } from '../lib/mentionUtils'
 import { listPatients } from '../lib/patientStore'
 import type { Patient, TeamChatMessage } from '../lib/types'
 
 const MAX_MENTION_RESULTS = 6
+// Not real-time (no websocket) — polling is enough for this test-run stage
+// and simple enough not to need one.
+const POLL_INTERVAL_MS = 4000
 
 interface Props {
   teamId: string
@@ -17,17 +20,14 @@ interface Props {
 // A team channel, not the AI interview — providers/scribes reference
 // patients constantly here, so typing "@" opens a patient picker and the
 // resulting mention is a clickable chip that jumps straight to that
-// patient's note (see App.tsx's handleOpenPatientNoteFromChat). The mention
-// picker only offers your own team's patients, same as everywhere else.
+// patient's note (see App.tsx's handleOpenPatientNoteFromChat). Scoped to
+// one team server-side (server/routes/teamChat.js) — only your own
+// provider/scribes ever show up here, same as everywhere else. The mention
+// picker only offers your own team's patients too.
 function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
-  const [messages, setMessages] = useState<TeamChatMessage[]>(() => {
-    // First-run seed so the channel doesn't look broken/empty — only once,
-    // never re-seeded on later visits.
-    if (listMessages().length === 0) {
-      addMessage('Dr. Patel', 'Morning team — tag a patient with @ to link straight to their note from here.')
-    }
-    return listMessages()
-  })
+  const [messages, setMessages] = useState<TeamChatMessage[]>([])
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
   const [input, setInput] = useState('')
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionStart, setMentionStart] = useState<number | null>(null)
@@ -41,6 +41,22 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
           .filter((p) => p.name.toLowerCase().includes(mentionQuery.toLowerCase()))
           .slice(0, MAX_MENTION_RESULTS)
       : []
+
+  function refreshMessages() {
+    fetchTeamMessages(teamId)
+      .then((next) => {
+        setMessages(next)
+        setLoadError(null)
+      })
+      .catch((err) => setLoadError(err instanceof ApiError ? err.message : 'Failed to load messages.'))
+  }
+
+  useEffect(() => {
+    refreshMessages()
+    const interval = setInterval(refreshMessages, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -83,14 +99,20 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
     })
   }
 
-  function handleSend() {
+  async function handleSend() {
     const text = input.trim()
     if (!text) return
-    addMessage(currentUserName, text)
-    setMessages(listMessages())
     setInput('')
     setMentionStart(null)
     setMentionQuery(null)
+    setSendError(null)
+    try {
+      await postTeamMessage(teamId, currentUserName, text)
+      refreshMessages()
+    } catch (err) {
+      setSendError(err instanceof ApiError ? err.message : 'Failed to send message.')
+      setInput(text)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -118,7 +140,7 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
     }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      void handleSend()
     }
   }
 
@@ -130,6 +152,10 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
       </div>
 
       <div className="chat-screen-messages">
+        {loadError && <p className="chat-screen-error">{loadError}</p>}
+        {!loadError && messages.length === 0 && (
+          <p className="chat-screen-empty">No messages yet — say hi to your team.</p>
+        )}
         {messages.map((m) => (
           <div key={m.id} className="chat-screen-message">
             <div className="chat-screen-message-header">
@@ -177,6 +203,7 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
             ))}
           </div>
         )}
+        {sendError && <p className="chat-screen-error">{sendError}</p>}
         <textarea
           ref={textareaRef}
           className="chat-screen-input"
@@ -186,7 +213,7 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
           placeholder="Message the team — type @ to mention a patient"
           rows={2}
         />
-        <button type="button" className="btn chat-screen-send" onClick={handleSend} disabled={!input.trim()}>
+        <button type="button" className="btn chat-screen-send" onClick={() => void handleSend()} disabled={!input.trim()}>
           <Send size={16} />
         </button>
       </div>

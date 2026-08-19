@@ -8,6 +8,7 @@ import type {
   RewordResponse,
   Suggestion,
   SuggestionsResponse,
+  TeamChatMessage,
   TeamMember,
   UpdateNoteResponse,
 } from './types'
@@ -98,4 +99,14 @@ export function signUp(data: SignUpData): Promise<TeamMember> {
 
 export function signIn(email: string): Promise<TeamMember> {
   return postJson<TeamMember>('/api/team/signin', { email })
+}
+
+// Team Chat — scoped per team (see server/routes/teamChat.js), so only
+// people on the same team ever see or post into the same message list.
+export function fetchTeamMessages(teamId: string): Promise<TeamChatMessage[]> {
+  return getJson<TeamChatMessage[]>(`/api/team-chat?teamId=${encodeURIComponent(teamId)}`)
+}
+
+export function postTeamMessage(teamId: string, author: string, text: string): Promise<TeamChatMessage> {
+  return postJson<TeamChatMessage>('/api/team-chat', { teamId, author, text })
 }

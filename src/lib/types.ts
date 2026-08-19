@@ -32,11 +32,13 @@ export interface Patient {
   facility: string
 }
 
-// A message in the mock team-chat page (see lib/chatStore.ts) — distinct
-// from ChatHistoryMessage below, which is the AI interview's own message
-// shape and unrelated to this human-to-human channel.
+// A message on the Team Chat page (see server/messageStore.js, fetched via
+// lib/apiClient.ts) — distinct from ChatHistoryMessage below, which is the
+// AI interview's own message shape and unrelated to this human-to-human
+// channel. Scoped to one team — only people on the same team see it.
 export interface TeamChatMessage {
   id: string
+  teamId: string
   author: string
   text: string
   createdAt: number

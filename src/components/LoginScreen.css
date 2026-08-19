@@ -69,8 +69,7 @@
   padding: var(--gap);
 }
 
-.login-form input,
-.login-form select {
+.login-form input {
   width: 100%;
   box-sizing: border-box;
   background: var(--code-bg);
@@ -81,16 +80,9 @@
   font: inherit;
 }
 
-.login-form input:focus,
-.login-form select:focus {
+.login-form input:focus {
   outline: none;
   border-color: var(--accent-border);
-}
-
-.login-form-note {
-  color: var(--text);
-  font-size: 13px;
-  margin: 0;
 }
 
 .login-form-error {

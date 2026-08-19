@@ -39,6 +39,19 @@
   padding: var(--gap);
 }
 
+.chat-screen-empty {
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+  margin: auto;
+}
+
+.chat-screen-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0;
+}
+
 .chat-screen-message-header {
   display: flex;
   align-items: baseline;
