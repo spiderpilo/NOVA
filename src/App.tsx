@@ -1,3 +1,4 @@
+import { ArrowLeft, Check } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
@@ -356,12 +357,19 @@ function App() {
     pageContent = (
       <div className="app-container">
         <div className="app-topbar">
-          <span className="app-topbar-patient">
-            {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
-          </span>
+          <div className="app-topbar-left">
+            <button type="button" className="btn btn-sm" onClick={() => handleOpenPatients()}>
+              <ArrowLeft size={15} />
+              Back
+            </button>
+            <span className="app-topbar-patient">
+              {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
+            </span>
+          </div>
           <div className="app-topbar-actions">
             <button type="button" className="btn btn-sm" onClick={() => handleOpenPatients()}>
-              Patients
+              <Check size={15} />
+              Done
             </button>
           </div>
         </div>

@@ -36,6 +36,12 @@
   padding: var(--gap) var(--gap) 0;
 }
 
+.app-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .app-topbar-patient {
   color: var(--text);
   font-size: 13px;
