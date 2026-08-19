@@ -4,10 +4,10 @@ import ChatPanel from './components/ChatPanel'
 import ChatScreen from './components/ChatScreen'
 import CompletenessPanel, { type CompletenessStatus } from './components/CompletenessPanel'
 import ImportPdfPanel from './components/ImportPdfPanel'
+import InstructionsScreen from './components/InstructionsScreen'
 import LoginScreen from './components/LoginScreen'
 import OutputPanel, { type RewordStatus } from './components/OutputPanel'
 import PatientListScreen, { type PatientFilter } from './components/PatientListScreen'
-import PlaceholderScreen from './components/PlaceholderScreen'
 import RoleSelectScreen from './components/RoleSelectScreen'
 import SuggestionsPanel from './components/SuggestionsPanel'
 import TaskBar from './components/TaskBar'
@@ -333,7 +333,7 @@ function App() {
   } else if (screen === 'upload') {
     pageContent = <UploadToolScreen teamId={currentUser.teamId} />
   } else if (screen === 'instructions') {
-    pageContent = <PlaceholderScreen title="Instructions" message="Guidance and how-tos for using NOVA are coming soon." />
+    pageContent = <InstructionsScreen />
   } else if (screen === 'chat') {
     pageContent = (
       <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
