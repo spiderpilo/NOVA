@@ -44,6 +44,13 @@
   text-align: center;
 }
 
+.patient-preview-unavailable {
+  margin: auto;
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+}
+
 .patient-preview-header h2 {
   font-family: var(--heading);
   font-weight: 500;

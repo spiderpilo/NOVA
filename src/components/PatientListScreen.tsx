@@ -124,8 +124,13 @@ function PatientListScreen({ teamId, canSign, activePatientId, initialFilter = {
     setPatients(listPatients(teamId))
   }
 
+  // A provider has nothing to do in the full workspace for a patient with
+  // no note yet — no note to review, nothing to sign — so they get the
+  // preview's "Not available" state instead of an empty editor. A scribe
+  // still opens the full workspace directly, since starting the note is
+  // exactly what they'd go there to do.
   function handleRowClick(p: Patient) {
-    if (p.reworded) {
+    if (p.reworded || canSign) {
       setPreviewPatient(p)
     } else {
       onSelect(p)
@@ -305,33 +310,39 @@ function PatientListScreen({ teamId, canSign, activePatientId, initialFilter = {
                 {previewPatient.facility} · {formatDateLabel(previewPatient.roundingDate)}
               </span>
             </div>
-            <span
-              className={
-                previewPatient.signed
-                  ? 'patient-list-item-status patient-list-item-status-signed'
-                  : 'patient-list-item-status patient-list-item-status-unsigned'
-              }
-            >
-              {previewPatient.signed
-                ? `Signed${previewPatient.signedAt ? ` on ${new Date(previewPatient.signedAt).toLocaleString()}` : ''}`
-                : 'Unsigned'}
-            </span>
-            <div className="patient-preview-text">{previewPatient.reworded}</div>
-            <div className="patient-preview-actions">
-              <button type="button" className="btn btn-sm" onClick={() => onSelect(previewPatient)}>
-                Open full note
-              </button>
-              {canSign &&
-                (previewPatient.signed ? (
-                  <button type="button" className="btn btn-sm" onClick={handleUnsign}>
-                    Unsign
+            {previewPatient.reworded ? (
+              <>
+                <span
+                  className={
+                    previewPatient.signed
+                      ? 'patient-list-item-status patient-list-item-status-signed'
+                      : 'patient-list-item-status patient-list-item-status-unsigned'
+                  }
+                >
+                  {previewPatient.signed
+                    ? `Signed${previewPatient.signedAt ? ` on ${new Date(previewPatient.signedAt).toLocaleString()}` : ''}`
+                    : 'Unsigned'}
+                </span>
+                <div className="patient-preview-text">{previewPatient.reworded}</div>
+                <div className="patient-preview-actions">
+                  <button type="button" className="btn btn-sm" onClick={() => onSelect(previewPatient)}>
+                    Open full note
                   </button>
-                ) : (
-                  <button type="button" className="btn" onClick={handleSign}>
-                    Sign Note
-                  </button>
-                ))}
-            </div>
+                  {canSign &&
+                    (previewPatient.signed ? (
+                      <button type="button" className="btn btn-sm" onClick={handleUnsign}>
+                        Unsign
+                      </button>
+                    ) : (
+                      <button type="button" className="btn" onClick={handleSign}>
+                        Sign Note
+                      </button>
+                    ))}
+                </div>
+              </>
+            ) : (
+              <p className="patient-preview-unavailable">Not available — no note has been started for this patient yet.</p>
+            )}
           </>
         ) : (
           <p className="patient-preview-empty">Select a patient with a note in progress to preview it here.</p>
