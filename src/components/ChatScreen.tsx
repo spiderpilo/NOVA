@@ -156,32 +156,37 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
         {!loadError && messages.length === 0 && (
           <p className="chat-screen-empty">No messages yet — say hi to your team.</p>
         )}
-        {messages.map((m) => (
-          <div key={m.id} className="chat-screen-message">
-            <div className="chat-screen-message-header">
-              <span className="chat-screen-message-author">{m.author}</span>
-              <span className="chat-screen-message-time">
-                {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-              </span>
+        {messages.map((m) => {
+          const isOwn = m.author === currentUserName
+          return (
+            <div key={m.id} className={isOwn ? 'chat-screen-message chat-screen-message-own' : 'chat-screen-message'}>
+              <div className="chat-screen-bubble">
+                <div className="chat-screen-message-header">
+                  {!isOwn && <span className="chat-screen-message-author">{m.author}</span>}
+                  <span className="chat-screen-message-time">
+                    {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p className="chat-screen-message-text">
+                  {parseMessageTokens(m.text).map((token, i) =>
+                    token.type === 'mention' ? (
+                      <button
+                        key={i}
+                        type="button"
+                        className="chat-screen-mention"
+                        onClick={() => onOpenPatientNote(token.patientId)}
+                      >
+                        @{token.name}
+                      </button>
+                    ) : (
+                      <span key={i}>{token.value}</span>
+                    ),
+                  )}
+                </p>
+              </div>
             </div>
-            <p className="chat-screen-message-text">
-              {parseMessageTokens(m.text).map((token, i) =>
-                token.type === 'mention' ? (
-                  <button
-                    key={i}
-                    type="button"
-                    className="chat-screen-mention"
-                    onClick={() => onOpenPatientNote(token.patientId)}
-                  >
-                    @{token.name}
-                  </button>
-                ) : (
-                  <span key={i}>{token.value}</span>
-                ),
-              )}
-            </p>
-          </div>
-        ))}
+          )
+        })}
         <div ref={bottomRef} />
       </div>
 
