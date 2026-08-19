@@ -11,18 +11,13 @@ never as invented clinical fact.
 ## Setup
 
 1. `npm install`
-2. Copy `.env.example` to `.env` and fill in:
-   - `OPENAI_API_KEY` (get one at
-     [platform.openai.com/api-keys](https://platform.openai.com/api-keys)).
-   - `AUTH_USER` / `AUTH_PASSWORD` — required; the API server refuses to
-     start without both. Generate a strong password, e.g.
-     `openssl rand -base64 18`.
+2. Copy `.env.example` to `.env` and fill in `OPENAI_API_KEY` (get one at
+   [platform.openai.com/api-keys](https://platform.openai.com/api-keys)).
 3. `npm run gen-cert` — generates a self-signed TLS cert into `certs/`
    (gitignored) so both dev servers can run over HTTPS. Your browser will
    warn that the cert isn't trusted; that's expected for a local dev cert.
 4. `npm run dev:all` — starts the Vite dev server (`:5173`) and the API
-   server (`:3001`) together, both over HTTPS. The browser will prompt for
-   the `AUTH_USER` / `AUTH_PASSWORD` credentials on first API call.
+   server (`:3001`) together, both over HTTPS.
 
 ## How it works
 
@@ -69,11 +64,12 @@ never as invented clinical fact.
   highlighted in green, and you can type directly into it without losing the
   highlighting. A "Clear highlights" button drops back to a plain editable
   view.
-- The API server requires HTTP Basic Auth on every request (`server/authMiddleware.js`)
-  and writes an access-only audit trail to `server/logs/audit.log`
+- The API server writes an access-only audit trail to `server/logs/audit.log`
   (`server/auditLog.js`) — timestamp, method, path, status, user, IP. The
   audit log never contains note text or model output, only who accessed the
-  endpoint and when.
+  endpoint and when. There's no request-level auth in front of the API right
+  now (pulled out for easier testing — see the privacy/compliance note below
+  for what real per-user auth needs to cover before this handles real PHI).
 - Both dev servers run over HTTPS using a locally generated self-signed cert
   (`certs/`, gitignored — regenerate with `npm run gen-cert`).
 
@@ -92,14 +88,15 @@ function (`api/index.js`) — both just wrap the same Express app defined in
 function.
 
 To deploy: connect this repo in Vercel (or `vercel --prod` if using the
-CLI), then set these under Project Settings → Environment Variables —
-**the app will fail on cold start if any required one is missing**:
+CLI), then set these under Project Settings → Environment Variables:
 
-- `OPENAI_API_KEY` — required.
-- `AUTH_USER` / `AUTH_PASSWORD` — required. HTTP Basic Auth is still enforced
-  on a deployed instance; don't skip this just because it's "only for
-  employees to try."
+- `OPENAI_API_KEY` — required, the app will fail on cold start without it.
 - `OPENAI_MODEL` — optional, defaults to `gpt-4o-mini`.
+
+There's currently no auth in front of a deployed instance — anyone with the
+URL can use it. Don't put this in front of real patient data (or leave it
+publicly reachable at all) until real per-user auth is back in place; see
+the privacy/compliance note below.
 
 Note that `certs/` (the local self-signed TLS cert) is irrelevant on
 Vercel — Vercel terminates HTTPS itself, so `api/index.js` never touches
@@ -122,11 +119,12 @@ with real patient data in any regulated context, you still need, at minimum:
 - **A real TLS certificate** for any non-localhost deployment — the
   self-signed cert here is for local development only and will not be
   trusted by browsers or valid for a real domain.
-- **A proper credential/secrets story** — `AUTH_USER`/`AUTH_PASSWORD` here is
-  a single shared login suitable for one local user, not a multi-user
-  account system. It has no session expiry, no lockout after failed
-  attempts, no per-user audit identity, and the password lives in plaintext
-  in `.env`.
+- **A real per-user account system** — there's no request-level auth in
+  front of the API at all right now (a HTTP Basic Auth stopgap was pulled
+  out for easier testing). Email login/sign-up is the planned replacement;
+  until it's in place, this is a single shared instance with no login, no
+  session expiry, no lockout after failed attempts, and no per-user audit
+  identity.
 - **Administrative safeguards** required by the HIPAA Security Rule that are
   entirely outside of code: a documented risk analysis, workforce training,
   breach notification procedures, and a retention/disposal policy.

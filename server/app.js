@@ -6,7 +6,6 @@ import chatRouter from './routes/chat.js';
 import updateNoteRouter from './routes/updateNote.js';
 import suggestionsRouter from './routes/suggestions.js';
 import applySuggestionsRouter from './routes/applySuggestions.js';
-import { basicAuth } from './authMiddleware.js';
 import { auditLog } from './auditLog.js';
 
 // The Express app itself, with no listener attached — shared between the
@@ -17,7 +16,8 @@ export const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(auditLog);
-app.use(basicAuth);
+// HTTP Basic Auth (server/authMiddleware.js) was pulled out for testing —
+// real per-user auth (email login/sign-up) is replacing it, not coming back.
 
 app.use('/api/reword', rewordRouter);
 app.use('/api/chat', chatRouter);
