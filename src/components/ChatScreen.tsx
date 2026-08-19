@@ -29,6 +29,13 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
   const [input, setInput] = useState('')
+  // Selecting a mention inserts plain "@Name" into the textarea — a
+  // textarea can only display its literal value, so the encoded
+  // "@[Name](id)" form would show up ugly and raw while composing.
+  // These pending mentions let handleSend swap each "@Name" back to the
+  // real @[Name](id) token right before posting, so the stored/rendered
+  // message still resolves to a clickable chip.
+  const [pendingMentions, setPendingMentions] = useState<{ name: string; patientId: string }[]>([])
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionStart, setMentionStart] = useState<number | null>(null)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
@@ -84,9 +91,10 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
     const cursor = textareaRef.current?.selectionStart ?? input.length
     const before = input.slice(0, mentionStart)
     const after = input.slice(cursor)
-    const token = encodeMention(patient.name, patient.id)
-    const nextValue = `${before}${token} ${after}`
+    const displayToken = `@${patient.name}`
+    const nextValue = `${before}${displayToken} ${after}`
     setInput(nextValue)
+    setPendingMentions((prev) => [...prev, { name: patient.name, patientId: patient.id }])
     setMentionStart(null)
     setMentionQuery(null)
 
@@ -94,24 +102,41 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
       const el = textareaRef.current
       if (!el) return
       el.focus()
-      const pos = before.length + token.length + 1
+      const pos = before.length + displayToken.length + 1
       el.setSelectionRange(pos, pos)
     })
+  }
+
+  // Swaps each pending "@Name" back to a real @[Name](id) token, left to
+  // right — if the text was edited so a name no longer appears, that
+  // mention is just skipped and stays as plain text instead of a chip.
+  function resolveMentionsForSend(text: string, mentions: { name: string; patientId: string }[]): string {
+    let result = text
+    for (const mention of mentions) {
+      const plain = `@${mention.name}`
+      const index = result.indexOf(plain)
+      if (index === -1) continue
+      result = result.slice(0, index) + encodeMention(mention.name, mention.patientId) + result.slice(index + plain.length)
+    }
+    return result
   }
 
   async function handleSend() {
     const text = input.trim()
     if (!text) return
+    const mentions = pendingMentions
     setInput('')
+    setPendingMentions([])
     setMentionStart(null)
     setMentionQuery(null)
     setSendError(null)
     try {
-      await postTeamMessage(teamId, currentUserName, text)
+      await postTeamMessage(teamId, currentUserName, resolveMentionsForSend(text, mentions))
       refreshMessages()
     } catch (err) {
       setSendError(err instanceof ApiError ? err.message : 'Failed to send message.')
       setInput(text)
+      setPendingMentions(mentions)
     }
   }
 

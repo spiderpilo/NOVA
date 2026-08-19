@@ -1,4 +1,4 @@
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, MessageCircle, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
@@ -52,10 +52,16 @@ function App() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
   // 'home' is the dashboard landing page; 'app' is the note workspace.
-  // 'patients'/'upload'/'instructions'/'chat'/'team' overlay whichever of
-  // those is current — they don't replace the state underneath, so
-  // returning from any of them lands back where you were.
-  const [screen, setScreen] = useState<'home' | 'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('home')
+  // 'patients'/'upload'/'instructions'/'team' overlay whichever of those is
+  // current — they don't replace the state underneath, so returning from
+  // any of them lands back where you were. Chat isn't one of these — it's
+  // a docked drawer (see chatOpen) reachable from every screen at once,
+  // not a screen you navigate to and away from.
+  const [screen, setScreen] = useState<'home' | 'app' | 'patients' | 'upload' | 'instructions' | 'team'>('home')
+  // The floating chat button toggles this from anywhere in the app —
+  // opening it narrows .app-page-content rather than replacing it, so
+  // whatever screen you're on stays visible alongside the chat.
+  const [chatOpen, setChatOpen] = useState(false)
   const [patientFilter, setPatientFilter] = useState<PatientFilter>({})
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
@@ -336,10 +342,6 @@ function App() {
     pageContent = <UploadToolScreen teamId={currentUser.teamId} />
   } else if (screen === 'instructions') {
     pageContent = <InstructionsScreen />
-  } else if (screen === 'chat') {
-    pageContent = (
-      <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
-    )
   } else if (screen === 'team') {
     pageContent = <TeamScreen currentUser={currentUser} />
   } else if (screen === 'home') {
@@ -422,14 +424,32 @@ function App() {
       <TaskBar
         currentUser={currentUser}
         onHome={handleGoHome}
-        onOpenChat={() => setScreen('chat')}
+        onOpenChat={() => setChatOpen((open) => !open)}
         onOpenInstructions={() => setScreen('instructions')}
         onOpenPatients={() => handleOpenPatients()}
         onOpenTeam={() => setScreen('team')}
         onOpenUploadTool={() => setScreen('upload')}
         onSignOut={handleSignOut}
       />
-      <div className="app-page-content">{pageContent}</div>
+      <div className="app-body">
+        <div className="app-page-content">{pageContent}</div>
+        {currentUser && chatOpen && (
+          <div className="chat-drawer">
+            <button type="button" className="chat-drawer-close" onClick={() => setChatOpen(false)} aria-label="Close chat">
+              <X size={16} />
+            </button>
+            <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
+          </div>
+        )}
+      </div>
+      {/* Hidden while the drawer is open — the drawer's own close button
+          sits in that same bottom-right corner otherwise, and a fixed FAB
+          on top of the drawer would cover its send button. */}
+      {currentUser && !chatOpen && (
+        <button type="button" className="chat-fab" onClick={() => setChatOpen(true)} aria-label="Open chat">
+          <MessageCircle size={22} />
+        </button>
+      )}
     </div>
   )
 }

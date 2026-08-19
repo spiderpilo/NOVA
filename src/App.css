@@ -10,10 +10,79 @@
   box-sizing: border-box;
 }
 
-.app-page-content {
+/* Row below the TaskBar — the active screen plus, when open, the chat
+   drawer docked beside it (not on top of it, so nothing gets covered). */
+.app-body {
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+}
+
+.app-page-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
+}
+
+/* Reachable from every screen via the floating chat button (.chat-fab) —
+   opening it narrows .app-page-content rather than covering it. */
+.chat-drawer {
+  position: relative;
+  flex: 0 0 380px;
+  min-height: 0;
+  border-left: 1px solid var(--panel-border);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-drawer-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.chat-drawer-close:hover {
+  background: var(--code-bg);
+  color: var(--text-h);
+}
+
+.chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  z-index: 50;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.chat-fab:hover {
+  background: #7e22ce;
+  transform: scale(1.06);
 }
 
 .app-container {

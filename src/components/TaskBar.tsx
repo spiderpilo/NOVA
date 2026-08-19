@@ -15,10 +15,13 @@ interface Props {
   onSignOut: () => void
 }
 
-// Home, Instructions, Chat, Team, Patients, and Upload all go somewhere
-// real now. The Profile dropdown shows whoever is actually signed in (see
-// LoginScreen/App.tsx's handleLogin) — there's no separate sign-in action
-// here, since signing in is the app's full-page gate, not a menu item.
+// Home, Instructions, Team, Patients, and Upload all navigate to a screen.
+// Chat is different — it toggles the docked chat drawer (see App.tsx's
+// chatOpen) rather than replacing the current screen, since it's also
+// reachable from the floating chat button on every screen. The Profile
+// dropdown shows whoever is actually signed in (see LoginScreen/App.tsx's
+// handleLogin) — there's no separate sign-in action here, since signing in
+// is the app's full-page gate, not a menu item.
 function TaskBar({ currentUser, onHome, onOpenChat, onOpenInstructions, onOpenPatients, onOpenTeam, onOpenUploadTool, onSignOut }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
