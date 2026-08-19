@@ -64,11 +64,11 @@
 
 .patient-list-new {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .patient-list-new input {
-  flex: 1 1 auto;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -81,6 +81,18 @@
 .patient-list-new input:focus {
   outline: none;
   border-color: var(--accent-border);
+}
+
+.patient-list-new-name {
+  flex: 2 1 160px;
+}
+
+.patient-list-new-facility {
+  flex: 2 1 160px;
+}
+
+.patient-list-new-date {
+  flex: 1 1 150px;
 }
 
 .patient-list-empty {

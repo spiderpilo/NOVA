@@ -95,18 +95,27 @@
   gap: 12px;
 }
 
-.team-provider-card {
+.team-section-card {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   padding: var(--gap);
 }
 
-.team-provider-header {
+.team-section-heading {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.team-provider-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
 }
 
 .team-provider-icon {
@@ -117,18 +126,6 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--text-h);
-}
-
-.team-role-badge {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  padding: 2px 8px;
-  border-radius: 999px;
 }
 
 .team-you-badge {
@@ -150,8 +147,7 @@
 .team-scribes-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-left: 26px;
+  gap: 10px;
 }
 
 .team-scribe-row {

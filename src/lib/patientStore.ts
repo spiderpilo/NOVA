@@ -37,7 +37,8 @@ function readAll(): Patient[] {
     const withRoundingDate = patients.map((p) =>
       p.roundingDate ? p : { ...p, roundingDate: dateKey(new Date(p.createdAt)) },
     )
-    return backfillTeamId(withRoundingDate)
+    const withFacility = withRoundingDate.map((p) => (p.facility ? p : { ...p, facility: 'Unspecified facility' }))
+    return backfillTeamId(withFacility)
   } catch {
     return []
   }
@@ -64,7 +65,12 @@ export function getPatientById(id: string): Patient | null {
 // roundingDate defaults to today — a patient added through the normal "Add
 // Patient" flow is added as part of today's rounds. Mock/seed data passes
 // an explicit past date to backfill a realistic rounding-date history.
-export function createPatient(name: string, teamId: string, roundingDate: string = todayDateKey()): Patient {
+export function createPatient(
+  name: string,
+  teamId: string,
+  facility: string,
+  roundingDate: string = todayDateKey(),
+): Patient {
   const now = Date.now()
   const patient: Patient = {
     id: crypto.randomUUID(),
@@ -80,6 +86,7 @@ export function createPatient(name: string, teamId: string, roundingDate: string
     uploadedAt: null,
     roundingDate,
     teamId,
+    facility,
   }
   writeAll([...readAll(), patient])
   return patient

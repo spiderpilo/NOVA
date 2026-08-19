@@ -70,26 +70,30 @@ function TeamScreen({ currentUser }: Props) {
       )}
 
       <div className="team-list">
-        <div className="team-provider-card">
-          <div className="team-provider-header">
+        <div className="team-section-card">
+          <h2 className="team-section-heading">Provider</h2>
+          <div className="team-provider-row">
             <Stethoscope size={18} className="team-provider-icon" />
             <span className="team-provider-name">{provider.name}</span>
             {provider.id === currentUser.id && <span className="team-you-badge">You</span>}
-            <span className="team-role-badge">Provider</span>
           </div>
-          <div className="team-scribes-list">
-            {scribes.length === 0 ? (
-              <p className="team-empty-note">No scribes assigned yet.</p>
-            ) : (
-              scribes.map((scribe) => (
+        </div>
+
+        <div className="team-section-card">
+          <h2 className="team-section-heading">Scribes</h2>
+          {scribes.length === 0 ? (
+            <p className="team-empty-note">No scribes assigned yet.</p>
+          ) : (
+            <div className="team-scribes-list">
+              {scribes.map((scribe) => (
                 <div key={scribe.id} className="team-scribe-row">
                   <NotebookPen size={15} className="team-scribe-icon" />
                   <span>{scribe.name}</span>
                   {scribe.id === currentUser.id && <span className="team-you-badge">You</span>}
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

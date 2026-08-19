@@ -25,6 +25,11 @@ export interface Patient {
   // that provider or one of their scribes. Scopes every patient list to
   // "your team" once someone logs in.
   teamId: string
+  // Which facility (SNF, hospital floor, etc.) the patient is being seen
+  // at — freeform, since a practice can round at many different sites.
+  // Surfaced on the patient list so a provider juggling several
+  // facilities can tell patients apart at a glance.
+  facility: string
 }
 
 // A message in the mock team-chat page (see lib/chatStore.ts) — distinct
