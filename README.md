@@ -68,8 +68,11 @@ never as invented clinical fact.
   (`server/auditLog.js`) — timestamp, method, path, status, user, IP. The
   audit log never contains note text or model output, only who accessed the
   endpoint and when. There's no request-level auth in front of the API right
-  now (pulled out for easier testing — see the privacy/compliance note below
-  for what real per-user auth needs to cover before this handles real PHI).
+  now — accounts exist (`server/routes/team.js`, `server/userStore.js`: sign
+  up/in with name, email, and role) but nothing yet ties an API request to a
+  signed-in identity, so this isn't a real access boundary. See the privacy/
+  compliance note below for what that still needs before this handles real
+  PHI.
 - Both dev servers run over HTTPS using a locally generated self-signed cert
   (`certs/`, gitignored — regenerate with `npm run gen-cert`).
 
@@ -93,10 +96,11 @@ CLI), then set these under Project Settings → Environment Variables:
 - `OPENAI_API_KEY` — required, the app will fail on cold start without it.
 - `OPENAI_MODEL` — optional, defaults to `gpt-4o-mini`.
 
-There's currently no auth in front of a deployed instance — anyone with the
-URL can use it. Don't put this in front of real patient data (or leave it
-publicly reachable at all) until real per-user auth is back in place; see
-the privacy/compliance note below.
+There's currently no request-level auth in front of a deployed instance —
+sign up/in (`/api/team`) exists, but anyone with the URL can call any API
+route directly regardless of it. Don't put this in front of real patient
+data (or leave it publicly reachable at all) until that's closed; see the
+privacy/compliance note below.
 
 Note that `certs/` (the local self-signed TLS cert) is irrelevant on
 Vercel — Vercel terminates HTTPS itself, so `api/index.js` never touches
@@ -119,12 +123,13 @@ with real patient data in any regulated context, you still need, at minimum:
 - **A real TLS certificate** for any non-localhost deployment — the
   self-signed cert here is for local development only and will not be
   trusted by browsers or valid for a real domain.
-- **A real per-user account system** — there's no request-level auth in
-  front of the API at all right now (a HTTP Basic Auth stopgap was pulled
-  out for easier testing). Email login/sign-up is the planned replacement;
-  until it's in place, this is a single shared instance with no login, no
-  session expiry, no lockout after failed attempts, and no per-user audit
-  identity.
+- **Real authentication, not just accounts** — sign up/in
+  (`server/routes/team.js`) collects name, email, and role and persists them
+  server-side, but it's passwordless (email alone is the identifier) and
+  nothing enforces it at the API layer: no session token, no request-level
+  check tying a `/api/*` call to whoever signed in, no lockout after failed
+  attempts. Anyone who can reach the API can call it directly regardless of
+  what the frontend shows as "signed in."
 - **Administrative safeguards** required by the HIPAA Security Rule that are
   entirely outside of code: a documented risk analysis, workforce training,
   breach notification procedures, and a retention/disposal policy.
