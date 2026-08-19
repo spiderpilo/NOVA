@@ -67,6 +67,22 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
     needsUpload: visiblePatients.filter((p) => p.signed && !p.uploaded).length,
   }
 
+  // Every other view (the full list, or a status-only filter) groups by
+  // rounding date instead of one flat list — a provider scanning "Awaiting
+  // signature" still wants to know which day each patient belongs to.
+  // Patients within a date keep the list's existing most-recently-updated
+  // order, since visiblePatients is already sorted that way.
+  const groupsByDate = isDateView
+    ? []
+    : Array.from(
+        visiblePatients.reduce((groups, p) => {
+          const group = groups.get(p.roundingDate)
+          if (group) group.push(p)
+          else groups.set(p.roundingDate, [p])
+          return groups
+        }, new Map<string, Patient[]>()),
+      ).sort(([a], [b]) => b.localeCompare(a))
+
   function handleCreate() {
     const name = newName.trim()
     const facility = newFacility.trim()
@@ -92,6 +108,56 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
   function handleSeedMockPatients() {
     seedMockPatients(teamId)
     setPatients(listPatients(teamId))
+  }
+
+  function renderPatientRow(p: Patient) {
+    return (
+      <li key={p.id} className={p.id === activePatientId ? 'patient-list-item patient-list-item-active' : 'patient-list-item'}>
+        <button type="button" className="patient-list-item-select" onClick={() => onSelect(p)}>
+          <span className="patient-list-item-name">{p.name}</span>
+          <span className="patient-list-item-meta">
+            <span
+              className={
+                p.reworded ? 'patient-list-item-note-status patient-list-item-note-status-has-note' : 'patient-list-item-note-status'
+              }
+            >
+              {p.reworded ? 'Note in progress' : 'No note yet'}
+            </span>{' '}
+            · {formatDateLabel(p.roundingDate)} · {p.facility} · Updated {new Date(p.updatedAt).toLocaleString()}
+          </span>
+        </button>
+        <div className="patient-list-item-actions">
+          {p.reworded && (
+            <span
+              className={
+                p.signed ? 'patient-list-item-status patient-list-item-status-signed' : 'patient-list-item-status patient-list-item-status-unsigned'
+              }
+            >
+              {p.signed ? 'Signed' : 'Unsigned'}
+            </span>
+          )}
+          {confirmDeleteId === p.id ? (
+            <>
+              <button type="button" className="btn btn-sm" onClick={() => setConfirmDeleteId(null)}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-sm patient-list-item-delete-confirm" onClick={() => handleDeleteClick(p.id)}>
+                Confirm delete
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn btn-sm patient-list-item-delete" onClick={() => handleDeleteClick(p.id)}>
+              Delete
+            </button>
+          )}
+        </div>
+        {p.uploaded && (
+          <div className="uploaded-fog">
+            <span className="uploaded-fog-label">Uploaded</span>
+          </div>
+        )}
+      </li>
+    )
   }
 
   return (
@@ -175,69 +241,20 @@ function PatientListScreen({ teamId, activePatientId, initialFilter = {}, onSele
         <p className="patient-list-empty">
           {isFiltered ? `No patients matching "${describeFilter(filter)}".` : 'No patients yet — add one above to get started.'}
         </p>
+      ) : isDateView ? (
+        <ul className="patient-list">{visiblePatients.map(renderPatientRow)}</ul>
       ) : (
-        <ul className="patient-list">
-          {visiblePatients.map((p) => (
-            <li
-              key={p.id}
-              className={p.id === activePatientId ? 'patient-list-item patient-list-item-active' : 'patient-list-item'}
-            >
-              <button type="button" className="patient-list-item-select" onClick={() => onSelect(p)}>
-                <span className="patient-list-item-name">{p.name}</span>
-                <span className="patient-list-item-meta">
-                  <span
-                    className={
-                      p.reworded ? 'patient-list-item-note-status patient-list-item-note-status-has-note' : 'patient-list-item-note-status'
-                    }
-                  >
-                    {p.reworded ? 'Note in progress' : 'No note yet'}
-                  </span>{' '}
-                  · {formatDateLabel(p.roundingDate)} · {p.facility} · Updated {new Date(p.updatedAt).toLocaleString()}
-                </span>
-              </button>
-              <div className="patient-list-item-actions">
-                {p.reworded && (
-                  <span
-                    className={
-                      p.signed
-                        ? 'patient-list-item-status patient-list-item-status-signed'
-                        : 'patient-list-item-status patient-list-item-status-unsigned'
-                    }
-                  >
-                    {p.signed ? 'Signed' : 'Unsigned'}
-                  </span>
-                )}
-                {confirmDeleteId === p.id ? (
-                  <>
-                    <button type="button" className="btn btn-sm" onClick={() => setConfirmDeleteId(null)}>
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm patient-list-item-delete-confirm"
-                      onClick={() => handleDeleteClick(p.id)}
-                    >
-                      Confirm delete
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-sm patient-list-item-delete"
-                    onClick={() => handleDeleteClick(p.id)}
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              {p.uploaded && (
-                <div className="uploaded-fog">
-                  <span className="uploaded-fog-label">Uploaded</span>
-                </div>
-              )}
-            </li>
+        <div className="patient-list-groups">
+          {groupsByDate.map(([date, group]) => (
+            <div key={date} className="patient-list-group">
+              <h2 className="patient-list-group-heading">
+                {formatDateLabel(date)}
+                <span className="patient-list-group-count">{group.length}</span>
+              </h2>
+              <ul className="patient-list">{group.map(renderPatientRow)}</ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )

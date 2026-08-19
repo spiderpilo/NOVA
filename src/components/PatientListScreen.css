@@ -104,6 +104,38 @@
   padding: 32px 16px;
 }
 
+.patient-list-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.patient-list-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.patient-list-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.patient-list-group-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--code-bg);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
 .patient-list {
   list-style: none;
   margin: 0;
