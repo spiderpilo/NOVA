@@ -424,7 +424,6 @@ function App() {
       <TaskBar
         currentUser={currentUser}
         onHome={handleGoHome}
-        onOpenChat={() => setChatOpen((open) => !open)}
         onOpenInstructions={() => setScreen('instructions')}
         onOpenPatients={() => handleOpenPatients()}
         onOpenTeam={() => setScreen('team')}

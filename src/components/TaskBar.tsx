@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, ClipboardList, Home, LogOut, MessageCircle, Upload, UserCircle, Users } from 'lucide-react'
+import { BookOpen, ChevronDown, ClipboardList, Home, LogOut, Upload, UserCircle, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import './TaskBar.css'
 import orcaIcon from '../assets/orca-icon.png'
@@ -7,7 +7,6 @@ import type { CurrentUser } from '../lib/types'
 interface Props {
   currentUser: CurrentUser | null
   onHome: () => void
-  onOpenChat: () => void
   onOpenInstructions: () => void
   onOpenPatients: () => void
   onOpenTeam: () => void
@@ -16,13 +15,12 @@ interface Props {
 }
 
 // Home, Instructions, Team, Patients, and Upload all navigate to a screen.
-// Chat is different — it toggles the docked chat drawer (see App.tsx's
-// chatOpen) rather than replacing the current screen, since it's also
-// reachable from the floating chat button on every screen. The Profile
+// Chat isn't here — it's the floating chat button (App.tsx's chatOpen),
+// reachable from every screen rather than tied to a nav item. The Profile
 // dropdown shows whoever is actually signed in (see LoginScreen/App.tsx's
 // handleLogin) — there's no separate sign-in action here, since signing in
 // is the app's full-page gate, not a menu item.
-function TaskBar({ currentUser, onHome, onOpenChat, onOpenInstructions, onOpenPatients, onOpenTeam, onOpenUploadTool, onSignOut }: Props) {
+function TaskBar({ currentUser, onHome, onOpenInstructions, onOpenPatients, onOpenTeam, onOpenUploadTool, onSignOut }: Props) {
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
 
@@ -56,10 +54,6 @@ function TaskBar({ currentUser, onHome, onOpenChat, onOpenInstructions, onOpenPa
         <button type="button" className="task-bar-button" onClick={onOpenInstructions}>
           <BookOpen size={17} />
           Instructions
-        </button>
-        <button type="button" className="task-bar-button" onClick={onOpenChat}>
-          <MessageCircle size={17} />
-          Chat
         </button>
         <button type="button" className="task-bar-button" onClick={onOpenTeam}>
           <Users size={17} />
