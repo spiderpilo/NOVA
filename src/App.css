@@ -26,15 +26,42 @@
 }
 
 /* Reachable from every screen via the floating chat button (.chat-fab) —
-   opening it narrows .app-page-content rather than covering it. */
+   opening it narrows .app-page-content rather than covering it. Always
+   mounted (see App.tsx) so this transition actually has something to
+   animate — max-width is what grows/shrinks, not the fixed-width inner
+   panel, so the reveal reads as a slide/curtain instead of the note text
+   inside reflowing as it resizes. */
 .chat-drawer {
-  position: relative;
-  flex: 0 0 380px;
+  flex: 0 0 auto;
+  max-width: 0;
   min-height: 0;
-  border-left: 1px solid var(--panel-border);
+  overflow: hidden;
+  border-left: 1px solid transparent;
+  transition:
+    max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.28s ease;
+}
+
+.chat-drawer-open {
+  max-width: 380px;
+  border-left-color: var(--panel-border);
+}
+
+.chat-drawer-inner {
+  position: relative;
+  width: 380px;
+  height: 100%;
+  min-height: 0;
   background: var(--bg);
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.chat-drawer-open .chat-drawer-inner {
+  opacity: 1;
+  transition-delay: 0.08s;
 }
 
 .chat-drawer-close {
@@ -52,6 +79,9 @@
   justify-content: center;
   cursor: pointer;
   z-index: 5;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .chat-drawer-close:hover {
@@ -75,14 +105,23 @@
   box-shadow: var(--shadow);
   cursor: pointer;
   z-index: 50;
+  opacity: 1;
+  transform: scale(1);
   transition:
-    transform 0.15s ease,
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease,
     background-color 0.15s ease;
 }
 
 .chat-fab:hover {
   background: #7e22ce;
   transform: scale(1.06);
+}
+
+.chat-fab-hidden {
+  opacity: 0;
+  transform: scale(0.5);
+  pointer-events: none;
 }
 
 .app-container {

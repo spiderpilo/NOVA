@@ -432,20 +432,32 @@ function App() {
       />
       <div className="app-body">
         <div className="app-page-content">{pageContent}</div>
-        {currentUser && chatOpen && (
-          <div className="chat-drawer">
-            <button type="button" className="chat-drawer-close" onClick={() => setChatOpen(false)} aria-label="Close chat">
-              <X size={16} />
-            </button>
-            <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
+        {/* Always mounted once signed in, even closed — a width transition
+            needs the element in the DOM to animate, and it also means
+            reopening doesn't re-fetch/re-poll from scratch. */}
+        {currentUser && (
+          <div className={chatOpen ? 'chat-drawer chat-drawer-open' : 'chat-drawer'}>
+            <div className="chat-drawer-inner">
+              <button type="button" className="chat-drawer-close" onClick={() => setChatOpen(false)} aria-label="Close chat">
+                <X size={16} />
+              </button>
+              <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
+            </div>
           </div>
         )}
       </div>
-      {/* Hidden while the drawer is open — the drawer's own close button
-          sits in that same bottom-right corner otherwise, and a fixed FAB
-          on top of the drawer would cover its send button. */}
-      {currentUser && !chatOpen && (
-        <button type="button" className="chat-fab" onClick={() => setChatOpen(true)} aria-label="Open chat">
+      {/* Fades/scales out while the drawer is open — the drawer's own close
+          button sits in that same bottom-right corner otherwise, and a
+          fixed FAB on top of the drawer would cover its send button. */}
+      {currentUser && (
+        <button
+          type="button"
+          className={chatOpen ? 'chat-fab chat-fab-hidden' : 'chat-fab'}
+          onClick={() => setChatOpen(true)}
+          aria-label="Open chat"
+          aria-hidden={chatOpen}
+          tabIndex={chatOpen ? -1 : 0}
+        >
           <MessageCircle size={22} />
         </button>
       )}
