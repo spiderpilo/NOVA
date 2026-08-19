@@ -325,6 +325,7 @@ function App() {
     pageContent = (
       <PatientListScreen
         teamId={currentUser.teamId}
+        canSign={currentUser.role === 'provider'}
         activePatientId={selectedPatientId}
         initialFilter={patientFilter}
         onSelect={handleSelectPatient}

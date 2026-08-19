@@ -111,6 +111,25 @@ export function markPatientUploaded(id: string): void {
   writeAll(patients)
 }
 
+// A provider signing off directly from the Patients-list note preview,
+// without opening the full workspace — same effect as OutputPanel's sign
+// button, just reachable from a different screen.
+export function signPatientNote(id: string): void {
+  const patients = readAll()
+  const index = patients.findIndex((p) => p.id === id)
+  if (index === -1) return
+  patients[index] = { ...patients[index], signed: true, signedAt: Date.now(), updatedAt: Date.now() }
+  writeAll(patients)
+}
+
+export function unsignPatientNote(id: string): void {
+  const patients = readAll()
+  const index = patients.findIndex((p) => p.id === id)
+  if (index === -1) return
+  patients[index] = { ...patients[index], signed: false, signedAt: null, updatedAt: Date.now() }
+  writeAll(patients)
+}
+
 export interface RoundingDateSummary {
   date: string
   total: number

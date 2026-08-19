@@ -1,12 +1,80 @@
 .patient-list-screen {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: var(--gap);
-  max-width: 640px;
+  max-width: 1140px;
   margin: 0 auto;
   height: 100%;
   padding: 40px var(--gap);
   box-sizing: border-box;
+}
+
+.patient-list-main {
+  flex: 1 1 480px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Clicking a patient with a note in progress previews it here instead of
+   opening the full workspace — stays put while the list scrolls, since it
+   should feel like a fixed reading pane, not part of the list. */
+.patient-list-preview {
+  flex: 1 1 420px;
+  min-width: 0;
+  align-self: stretch;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--gap);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.patient-preview-empty {
+  margin: auto;
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+}
+
+.patient-preview-header h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--text-h);
+  margin: 0 0 4px;
+}
+
+.patient-preview-meta {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.patient-preview-text {
+  flex: 1 1 auto;
+  white-space: pre-wrap;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 150%;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border-radius: var(--radius);
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.patient-preview-actions {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .patient-list-header {
