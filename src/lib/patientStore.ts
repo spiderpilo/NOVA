@@ -1,5 +1,4 @@
 import { dateKey, todayDateKey } from './dateUtils'
-import { listTeamMembers } from './teamStore'
 import type { NoteType, Patient } from './types'
 
 // localStorage rather than sessionStorage — patients need to survive a tab
@@ -7,38 +6,26 @@ import type { NoteType, Patient } from './types'
 // test-run stand-in; a real deployment would back this with a server.
 const PATIENTS_KEY = 'nova:patients'
 
-// Patients saved before team scoping existed have no teamId — split them
-// round-robin across the seeded providers so an existing test run still
-// demonstrates per-team scoping instead of every legacy patient silently
-// disappearing from every team's list.
-function backfillTeamId(patients: Patient[]): Patient[] {
-  if (patients.every((p) => p.teamId)) return patients
-  const providers = listTeamMembers().filter((m) => m.role === 'provider')
-  if (providers.length === 0) return patients
-  let index = 0
-  return patients.map((p) => {
-    if (p.teamId) return p
-    const provider = providers[index % providers.length]
-    index += 1
-    return { ...p, teamId: provider.id }
-  })
-}
-
 function readAll(): Patient[] {
   try {
     const raw = localStorage.getItem(PATIENTS_KEY)
     if (!raw) return []
     const patients = JSON.parse(raw) as Patient[]
-    // Backfill for patients saved before roundingDate existed — without
-    // this, formatDateLabel() throws on the missing field and blanks the
-    // whole page, since nothing here has an error boundary. Best guess is
-    // their creation date, since that's the closest thing to "which day's
-    // rounds they were part of" for a record that predates the concept.
-    const withRoundingDate = patients.map((p) =>
-      p.roundingDate ? p : { ...p, roundingDate: dateKey(new Date(p.createdAt)) },
-    )
-    const withFacility = withRoundingDate.map((p) => (p.facility ? p : { ...p, facility: 'Unspecified facility' }))
-    return backfillTeamId(withFacility)
+    // Backfill for patients saved before roundingDate/facility existed —
+    // without the roundingDate one, formatDateLabel() throws on the
+    // missing field and blanks the whole page, since nothing here has an
+    // error boundary. Best guess is the creation date, since that's the
+    // closest thing to "which day's rounds they were part of" for a
+    // record that predates the concept. A patient with no teamId predates
+    // team accounts entirely and can't be attributed to a real team
+    // anymore (team membership now lives on the server, not here), so it
+    // just won't show up in any team's filtered list.
+    return patients.map((p) => ({
+      ...p,
+      roundingDate: p.roundingDate || dateKey(new Date(p.createdAt)),
+      facility: p.facility || 'Unspecified facility',
+      teamId: p.teamId || '',
+    }))
   } catch {
     return []
   }

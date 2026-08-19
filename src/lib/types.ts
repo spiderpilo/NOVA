@@ -21,9 +21,9 @@ export interface Patient {
   // rather than a moment in time.
   roundingDate: string
   // Which team owns this patient — always a provider's TeamMember id (see
-  // lib/teamStore.ts's resolveTeamId), whether the patient was added by
-  // that provider or one of their scribes. Scopes every patient list to
-  // "your team" once someone logs in.
+  // lib/team.ts's resolveTeamId), whether the patient was added by that
+  // provider or one of their scribes. Scopes every patient list to "your
+  // team" once someone logs in.
   teamId: string
   // Which facility (SNF, hospital floor, etc.) the patient is being seen
   // at — freeform, since a practice can round at many different sites.
@@ -42,23 +42,27 @@ export interface TeamChatMessage {
   createdAt: number
 }
 
-// A person on the Team page (see lib/teamStore.ts). Providers supervise
-// scribes — supervisorId names which provider a scribe is assigned to, and
-// is always null for a provider.
+// A registered account, persisted server-side (see server/userStore.js,
+// fetched via lib/apiClient.ts). Providers supervise scribes —
+// supervisorId names which provider a scribe signed up under, and is
+// always null for a provider.
 export interface TeamMember {
   id: string
   name: string
+  email: string
   role: Role
   supervisorId: string | null
 }
 
 // Identity of whoever is currently signed in (see App.tsx's handleLogin) —
-// set the moment they pick their name on LoginScreen, and gone the moment
-// they sign out. teamId is derived from the TeamMember at login time (see
-// lib/teamStore.ts's resolveTeamId) and is what scopes every patient list.
+// set the moment sign-in/sign-up succeeds on LoginScreen, and gone the
+// moment they sign out. Not persisted across a page reload — see App.tsx.
+// teamId is derived from the TeamMember at login time (see lib/team.ts's
+// resolveTeamId) and is what scopes every patient list.
 export interface CurrentUser {
   id: string
   name: string
+  email: string
   role: Role
   teamId: string
 }

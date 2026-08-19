@@ -4,13 +4,36 @@ import type {
   ChatHistoryMessage,
   ChatResponse,
   NoteType,
+  Role,
   RewordResponse,
   Suggestion,
   SuggestionsResponse,
+  TeamMember,
   UpdateNoteResponse,
 } from './types'
 
 export class ApiError extends Error {}
+
+function readErrorMessage(data: unknown): string {
+  return (data as ApiErrorResponse | null)?.error ?? 'Something went wrong. Please try again.'
+}
+
+async function getJson<T>(url: string): Promise<T> {
+  let res: Response
+  try {
+    res = await fetch(url)
+  } catch {
+    throw new ApiError("Can't reach the server. Is it running?")
+  }
+
+  const data = await res.json().catch(() => null)
+
+  if (!res.ok) {
+    throw new ApiError(readErrorMessage(data))
+  }
+
+  return data as T
+}
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   let res: Response
@@ -27,8 +50,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   const data = await res.json().catch(() => null)
 
   if (!res.ok) {
-    const message = (data as ApiErrorResponse | null)?.error ?? 'Something went wrong. Please try again.'
-    throw new ApiError(message)
+    throw new ApiError(readErrorMessage(data))
   }
 
   return data as T
@@ -54,4 +76,26 @@ export function applySuggestions(noteText: string, suggestions: string[]): Promi
   return postJson<ApplySuggestionsResponse>('/api/apply-suggestions', { noteText, suggestions }).then(
     (r) => r.updatedNote,
   )
+}
+
+// The team roster, sign-up, and sign-in — see server/routes/team.js and
+// server/userStore.js. No password yet; email is just the account's unique
+// identifier for this test-run stage of the app.
+export function fetchTeamRoster(): Promise<TeamMember[]> {
+  return getJson<TeamMember[]>('/api/team')
+}
+
+export interface SignUpData {
+  name: string
+  email: string
+  role: Role
+  supervisorId: string | null
+}
+
+export function signUp(data: SignUpData): Promise<TeamMember> {
+  return postJson<TeamMember>('/api/team/signup', data)
+}
+
+export function signIn(email: string): Promise<TeamMember> {
+  return postJson<TeamMember>('/api/team/signin', { email })
 }

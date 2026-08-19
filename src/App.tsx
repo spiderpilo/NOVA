@@ -17,7 +17,7 @@ import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
 import { getPatientById, updatePatientNote } from './lib/patientStore'
-import { resolveTeamId } from './lib/teamStore'
+import { resolveTeamId } from './lib/team'
 import type { CurrentUser, NoteType, Patient, TeamMember } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
@@ -301,7 +301,7 @@ function App() {
   // Picking a name on LoginScreen is what "logging in" means for this
   // prototype — it sets both role and team for the session in one step.
   function handleLogin(member: TeamMember) {
-    setCurrentUser({ id: member.id, name: member.name, role: member.role, teamId: resolveTeamId(member) })
+    setCurrentUser({ id: member.id, name: member.name, email: member.email, role: member.role, teamId: resolveTeamId(member) })
     setScreen('home')
   }
 
