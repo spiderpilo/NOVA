@@ -57,8 +57,15 @@ function PatientListScreen({ teamId, canSign, activePatientId, initialFilter = {
   // Clicking a patient who already has a note in progress shows it here
   // instead of jumping into the full workspace — picking another patient
   // just replaces this. A patient with no note yet still opens the full
-  // workspace directly, since there's nothing to preview.
-  const [previewPatient, setPreviewPatient] = useState<Patient | null>(null)
+  // workspace directly, since there's nothing to preview. Initialized from
+  // activePatientId so Back/Done from the full workspace lands back on a
+  // preview of the same patient, rather than an empty pane — but only if
+  // they actually have a note; a "no note yet" patient has nothing to show.
+  const [previewPatient, setPreviewPatient] = useState<Patient | null>(() => {
+    if (!activePatientId) return null
+    const active = patients.find((p) => p.id === activePatientId)
+    return active?.reworded ? active : null
+  })
 
   const isFiltered = Boolean(filter.status || filter.roundingDate)
   const visiblePatients = patients.filter((p) => matchesFilter(p, filter))
