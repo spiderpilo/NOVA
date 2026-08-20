@@ -110,6 +110,17 @@ instead of a local file when deployed (`server/auditLog.js` detects the
 project's Function Logs, since a serverless function's local filesystem
 isn't persistent between invocations.
 
+**Accounts and Team Chat are not reliably durable on Vercel yet.**
+`server/userStore.js` and `server/messageStore.js` are JSON-file "databases"
+— fine for the local long-running dev server, but Vercel's filesystem is
+read-only outside `/tmp`. Both detect `VERCEL` and redirect there instead of
+crashing, but `/tmp` isn't guaranteed to persist or be shared across
+invocations, so accounts and chat messages can still reset unpredictably
+between requests on a real deployment (a cold instance won't remember
+someone who signed up a minute ago). This is a stopgap against a hard
+500, not a fix — a real deployment needs an actual persistent store (Vercel
+KV/Postgres, or another hosted DB) wired into those two files instead.
+
 ## Privacy / compliance note
 
 This app sends extracted patient note text to OpenAI's API — for rewording,
