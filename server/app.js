@@ -6,6 +6,8 @@ import chatRouter from './routes/chat.js';
 import updateNoteRouter from './routes/updateNote.js';
 import suggestionsRouter from './routes/suggestions.js';
 import applySuggestionsRouter from './routes/applySuggestions.js';
+import teamRouter from './routes/team.js';
+import teamChatRouter from './routes/teamChat.js';
 import { auditLog } from './auditLog.js';
 
 // The Express app itself, with no listener attached — shared between the
@@ -24,3 +26,5 @@ app.use('/api/chat', chatRouter);
 app.use('/api/update-note', updateNoteRouter);
 app.use('/api/suggestions', suggestionsRouter);
 app.use('/api/apply-suggestions', applySuggestionsRouter);
+app.use('/api/team', teamRouter);
+app.use('/api/team-chat', teamChatRouter);

@@ -1,3 +1,4 @@
+import { ArrowLeft, Check, MessageCircle, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './App.css'
 import ChatPanel from './components/ChatPanel'
@@ -16,7 +17,7 @@ import UploadToolScreen from './components/UploadToolScreen'
 import { ApiError, applySuggestions, rewordText, updateNoteWithAnswer } from './lib/apiClient'
 import { checkCompletenessLocal } from './lib/completenessCheck'
 import { getPatientById, updatePatientNote } from './lib/patientStore'
-import { resolveTeamId } from './lib/teamStore'
+import { resolveTeamId } from './lib/team'
 import type { CurrentUser, NoteType, Patient, TeamMember } from './lib/types'
 
 const SESSION_STORAGE_KEY = 'nova:session'
@@ -51,10 +52,16 @@ function App() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
   // 'home' is the dashboard landing page; 'app' is the note workspace.
-  // 'patients'/'upload'/'instructions'/'chat'/'team' overlay whichever of
-  // those is current — they don't replace the state underneath, so
-  // returning from any of them lands back where you were.
-  const [screen, setScreen] = useState<'home' | 'app' | 'patients' | 'upload' | 'instructions' | 'chat' | 'team'>('home')
+  // 'patients'/'upload'/'instructions'/'team' overlay whichever of those is
+  // current — they don't replace the state underneath, so returning from
+  // any of them lands back where you were. Chat isn't one of these — it's
+  // a docked drawer (see chatOpen) reachable from every screen at once,
+  // not a screen you navigate to and away from.
+  const [screen, setScreen] = useState<'home' | 'app' | 'patients' | 'upload' | 'instructions' | 'team'>('home')
+  // The floating chat button toggles this from anywhere in the app —
+  // opening it narrows .app-page-content rather than replacing it, so
+  // whatever screen you're on stays visible alongside the chat.
+  const [chatOpen, setChatOpen] = useState(false)
   const [patientFilter, setPatientFilter] = useState<PatientFilter>({})
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(persisted?.selectedPatientId ?? null)
   const [selectedPatientName, setSelectedPatientName] = useState<string | null>(persisted?.selectedPatientName ?? null)
@@ -300,7 +307,7 @@ function App() {
   // Picking a name on LoginScreen is what "logging in" means for this
   // prototype — it sets both role and team for the session in one step.
   function handleLogin(member: TeamMember) {
-    setCurrentUser({ id: member.id, name: member.name, role: member.role, teamId: resolveTeamId(member) })
+    setCurrentUser({ id: member.id, name: member.name, email: member.email, role: member.role, teamId: resolveTeamId(member) })
     setScreen('home')
   }
 
@@ -324,6 +331,7 @@ function App() {
     pageContent = (
       <PatientListScreen
         teamId={currentUser.teamId}
+        canSign={currentUser.role === 'provider'}
         activePatientId={selectedPatientId}
         initialFilter={patientFilter}
         onSelect={handleSelectPatient}
@@ -334,10 +342,6 @@ function App() {
     pageContent = <UploadToolScreen teamId={currentUser.teamId} />
   } else if (screen === 'instructions') {
     pageContent = <InstructionsScreen />
-  } else if (screen === 'chat') {
-    pageContent = (
-      <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
-    )
   } else if (screen === 'team') {
     pageContent = <TeamScreen currentUser={currentUser} />
   } else if (screen === 'home') {
@@ -356,12 +360,19 @@ function App() {
     pageContent = (
       <div className="app-container">
         <div className="app-topbar">
-          <span className="app-topbar-patient">
-            {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
-          </span>
+          <div className="app-topbar-left">
+            <button type="button" className="btn btn-sm" onClick={() => handleOpenPatients()}>
+              <ArrowLeft size={15} />
+              Back
+            </button>
+            <span className="app-topbar-patient">
+              {selectedPatientName ? `Patient: ${selectedPatientName}` : 'No patient selected'}
+            </span>
+          </div>
           <div className="app-topbar-actions">
             <button type="button" className="btn btn-sm" onClick={() => handleOpenPatients()}>
-              Patients
+              <Check size={15} />
+              Done
             </button>
           </div>
         </div>
@@ -413,14 +424,43 @@ function App() {
       <TaskBar
         currentUser={currentUser}
         onHome={handleGoHome}
-        onOpenChat={() => setScreen('chat')}
         onOpenInstructions={() => setScreen('instructions')}
         onOpenPatients={() => handleOpenPatients()}
         onOpenTeam={() => setScreen('team')}
         onOpenUploadTool={() => setScreen('upload')}
         onSignOut={handleSignOut}
       />
-      <div className="app-page-content">{pageContent}</div>
+      <div className="app-body">
+        <div className="app-page-content">{pageContent}</div>
+        {/* Always mounted once signed in, even closed — a width transition
+            needs the element in the DOM to animate, and it also means
+            reopening doesn't re-fetch/re-poll from scratch. */}
+        {currentUser && (
+          <div className={chatOpen ? 'chat-drawer chat-drawer-open' : 'chat-drawer'}>
+            <div className="chat-drawer-inner">
+              <button type="button" className="chat-drawer-close" onClick={() => setChatOpen(false)} aria-label="Close chat">
+                <X size={16} />
+              </button>
+              <ChatScreen teamId={currentUser.teamId} currentUserName={currentUser.name} onOpenPatientNote={handleOpenPatientNoteFromChat} />
+            </div>
+          </div>
+        )}
+      </div>
+      {/* Fades/scales out while the drawer is open — the drawer's own close
+          button sits in that same bottom-right corner otherwise, and a
+          fixed FAB on top of the drawer would cover its send button. */}
+      {currentUser && (
+        <button
+          type="button"
+          className={chatOpen ? 'chat-fab chat-fab-hidden' : 'chat-fab'}
+          onClick={() => setChatOpen(true)}
+          aria-label="Open chat"
+          aria-hidden={chatOpen}
+          tabIndex={chatOpen ? -1 : 0}
+        >
+          <MessageCircle size={22} />
+        </button>
+      )}
     </div>
   )
 }

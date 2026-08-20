@@ -4,10 +4,8 @@
   gap: var(--gap);
   max-width: 640px;
   margin: 0 auto;
-  height: 100%;
   padding: 40px var(--gap);
   box-sizing: border-box;
-  overflow-y: auto;
 }
 
 .team-screen-header {
@@ -34,8 +32,7 @@
   padding: var(--gap);
 }
 
-.team-invite-form input,
-.team-invite-form select {
+.team-invite-form input {
   width: 100%;
   box-sizing: border-box;
   background: var(--code-bg);
@@ -46,8 +43,7 @@
   font: inherit;
 }
 
-.team-invite-form input:focus,
-.team-invite-form select:focus {
+.team-invite-form input:focus {
   outline: none;
   border-color: var(--accent-border);
 }
@@ -79,6 +75,12 @@
 
 .team-invite-note {
   color: var(--text);
+  font-size: 13px;
+  margin: 0;
+}
+
+.team-invite-error {
+  color: #dc2626;
   font-size: 13px;
   margin: 0;
 }

@@ -11,7 +11,7 @@
 
 .login-screen-content {
   width: 100%;
-  max-width: 460px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -33,59 +33,105 @@
   text-align: center;
 }
 
-.login-screen-list {
+.login-mode-toggle {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  gap: 2px;
+  margin-bottom: 12px;
 }
 
-.login-team-card {
+.login-mode-option {
+  flex: 1 1 auto;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+}
+
+.login-mode-option-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
-  overflow: hidden;
+  padding: var(--gap);
 }
 
-.login-member-row {
+.login-form input {
   width: 100%;
+  box-sizing: border-box;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text-h);
+  font: inherit;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.login-form-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0;
+}
+
+.login-form .btn {
+  width: 100%;
+  text-align: center;
+}
+
+.login-demo {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-demo-divider {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  background: transparent;
-  padding: 12px var(--gap);
-  font: inherit;
-  color: var(--text-h);
-  cursor: pointer;
-  text-align: left;
-}
-
-.login-team-card .login-member-row:last-child {
-  border-bottom: none;
-}
-
-.login-member-row:hover {
-  background: var(--accent-bg);
-}
-
-.login-member-row-provider {
-  font-weight: 600;
-}
-
-.login-member-icon {
-  color: var(--accent);
-  flex: 0 0 auto;
-}
-
-.login-member-name {
-  flex: 1 1 auto;
-}
-
-.login-member-role {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
   color: var(--text);
+  font-size: 12px;
+}
+
+.login-demo-divider::before,
+.login-demo-divider::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+.login-demo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.login-demo-actions .btn {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.login-demo-note {
+  color: var(--text);
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
 }

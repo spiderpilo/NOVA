@@ -1,12 +1,15 @@
 import { Send } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import './ChatScreen.css'
-import { addMessage, listMessages } from '../lib/chatStore'
+import { ApiError, fetchTeamMessages, postTeamMessage } from '../lib/apiClient'
 import { encodeMention, parseMessageTokens } from '../lib/mentionUtils'
 import { listPatients } from '../lib/patientStore'
 import type { Patient, TeamChatMessage } from '../lib/types'
 
 const MAX_MENTION_RESULTS = 6
+// Not real-time (no websocket) — polling is enough for this test-run stage
+// and simple enough not to need one.
+const POLL_INTERVAL_MS = 4000
 
 interface Props {
   teamId: string
@@ -17,18 +20,22 @@ interface Props {
 // A team channel, not the AI interview — providers/scribes reference
 // patients constantly here, so typing "@" opens a patient picker and the
 // resulting mention is a clickable chip that jumps straight to that
-// patient's note (see App.tsx's handleOpenPatientNoteFromChat). The mention
-// picker only offers your own team's patients, same as everywhere else.
+// patient's note (see App.tsx's handleOpenPatientNoteFromChat). Scoped to
+// one team server-side (server/routes/teamChat.js) — only your own
+// provider/scribes ever show up here, same as everywhere else. The mention
+// picker only offers your own team's patients too.
 function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
-  const [messages, setMessages] = useState<TeamChatMessage[]>(() => {
-    // First-run seed so the channel doesn't look broken/empty — only once,
-    // never re-seeded on later visits.
-    if (listMessages().length === 0) {
-      addMessage('Dr. Patel', 'Morning team — tag a patient with @ to link straight to their note from here.')
-    }
-    return listMessages()
-  })
+  const [messages, setMessages] = useState<TeamChatMessage[]>([])
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
   const [input, setInput] = useState('')
+  // Selecting a mention inserts plain "@Name" into the textarea — a
+  // textarea can only display its literal value, so the encoded
+  // "@[Name](id)" form would show up ugly and raw while composing.
+  // These pending mentions let handleSend swap each "@Name" back to the
+  // real @[Name](id) token right before posting, so the stored/rendered
+  // message still resolves to a clickable chip.
+  const [pendingMentions, setPendingMentions] = useState<{ name: string; patientId: string }[]>([])
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionStart, setMentionStart] = useState<number | null>(null)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
@@ -41,6 +48,22 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
           .filter((p) => p.name.toLowerCase().includes(mentionQuery.toLowerCase()))
           .slice(0, MAX_MENTION_RESULTS)
       : []
+
+  function refreshMessages() {
+    fetchTeamMessages(teamId)
+      .then((next) => {
+        setMessages(next)
+        setLoadError(null)
+      })
+      .catch((err) => setLoadError(err instanceof ApiError ? err.message : 'Failed to load messages.'))
+  }
+
+  useEffect(() => {
+    refreshMessages()
+    const interval = setInterval(refreshMessages, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -68,9 +91,10 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
     const cursor = textareaRef.current?.selectionStart ?? input.length
     const before = input.slice(0, mentionStart)
     const after = input.slice(cursor)
-    const token = encodeMention(patient.name, patient.id)
-    const nextValue = `${before}${token} ${after}`
+    const displayToken = `@${patient.name}`
+    const nextValue = `${before}${displayToken} ${after}`
     setInput(nextValue)
+    setPendingMentions((prev) => [...prev, { name: patient.name, patientId: patient.id }])
     setMentionStart(null)
     setMentionQuery(null)
 
@@ -78,19 +102,42 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
       const el = textareaRef.current
       if (!el) return
       el.focus()
-      const pos = before.length + token.length + 1
+      const pos = before.length + displayToken.length + 1
       el.setSelectionRange(pos, pos)
     })
   }
 
-  function handleSend() {
+  // Swaps each pending "@Name" back to a real @[Name](id) token, left to
+  // right — if the text was edited so a name no longer appears, that
+  // mention is just skipped and stays as plain text instead of a chip.
+  function resolveMentionsForSend(text: string, mentions: { name: string; patientId: string }[]): string {
+    let result = text
+    for (const mention of mentions) {
+      const plain = `@${mention.name}`
+      const index = result.indexOf(plain)
+      if (index === -1) continue
+      result = result.slice(0, index) + encodeMention(mention.name, mention.patientId) + result.slice(index + plain.length)
+    }
+    return result
+  }
+
+  async function handleSend() {
     const text = input.trim()
     if (!text) return
-    addMessage(currentUserName, text)
-    setMessages(listMessages())
+    const mentions = pendingMentions
     setInput('')
+    setPendingMentions([])
     setMentionStart(null)
     setMentionQuery(null)
+    setSendError(null)
+    try {
+      await postTeamMessage(teamId, currentUserName, resolveMentionsForSend(text, mentions))
+      refreshMessages()
+    } catch (err) {
+      setSendError(err instanceof ApiError ? err.message : 'Failed to send message.')
+      setInput(text)
+      setPendingMentions(mentions)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -118,7 +165,7 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
     }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      void handleSend()
     }
   }
 
@@ -130,32 +177,41 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
       </div>
 
       <div className="chat-screen-messages">
-        {messages.map((m) => (
-          <div key={m.id} className="chat-screen-message">
-            <div className="chat-screen-message-header">
-              <span className="chat-screen-message-author">{m.author}</span>
-              <span className="chat-screen-message-time">
-                {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-              </span>
+        {loadError && <p className="chat-screen-error">{loadError}</p>}
+        {!loadError && messages.length === 0 && (
+          <p className="chat-screen-empty">No messages yet — say hi to your team.</p>
+        )}
+        {messages.map((m) => {
+          const isOwn = m.author === currentUserName
+          return (
+            <div key={m.id} className={isOwn ? 'chat-screen-message chat-screen-message-own' : 'chat-screen-message'}>
+              <div className="chat-screen-bubble">
+                <div className="chat-screen-message-header">
+                  {!isOwn && <span className="chat-screen-message-author">{m.author}</span>}
+                  <span className="chat-screen-message-time">
+                    {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p className="chat-screen-message-text">
+                  {parseMessageTokens(m.text).map((token, i) =>
+                    token.type === 'mention' ? (
+                      <button
+                        key={i}
+                        type="button"
+                        className="chat-screen-mention"
+                        onClick={() => onOpenPatientNote(token.patientId)}
+                      >
+                        @{token.name}
+                      </button>
+                    ) : (
+                      <span key={i}>{token.value}</span>
+                    ),
+                  )}
+                </p>
+              </div>
             </div>
-            <p className="chat-screen-message-text">
-              {parseMessageTokens(m.text).map((token, i) =>
-                token.type === 'mention' ? (
-                  <button
-                    key={i}
-                    type="button"
-                    className="chat-screen-mention"
-                    onClick={() => onOpenPatientNote(token.patientId)}
-                  >
-                    @{token.name}
-                  </button>
-                ) : (
-                  <span key={i}>{token.value}</span>
-                ),
-              )}
-            </p>
-          </div>
-        ))}
+          )
+        })}
         <div ref={bottomRef} />
       </div>
 
@@ -177,6 +233,7 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
             ))}
           </div>
         )}
+        {sendError && <p className="chat-screen-error">{sendError}</p>}
         <textarea
           ref={textareaRef}
           className="chat-screen-input"
@@ -186,7 +243,7 @@ function ChatScreen({ teamId, currentUserName, onOpenPatientNote }: Props) {
           placeholder="Message the team — type @ to mention a patient"
           rows={2}
         />
-        <button type="button" className="btn chat-screen-send" onClick={handleSend} disabled={!input.trim()}>
+        <button type="button" className="btn chat-screen-send" onClick={() => void handleSend()} disabled={!input.trim()}>
           <Send size={16} />
         </button>
       </div>

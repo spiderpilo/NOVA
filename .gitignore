@@ -1,6 +1,10 @@
 # Logs
 logs
 *.log
+
+# JSON file "database" for accounts (server/userStore.js) — test-run data,
+# not something to ship in the repo.
+server/data
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

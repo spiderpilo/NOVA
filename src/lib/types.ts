@@ -21,9 +21,9 @@ export interface Patient {
   // rather than a moment in time.
   roundingDate: string
   // Which team owns this patient — always a provider's TeamMember id (see
-  // lib/teamStore.ts's resolveTeamId), whether the patient was added by
-  // that provider or one of their scribes. Scopes every patient list to
-  // "your team" once someone logs in.
+  // lib/team.ts's resolveTeamId), whether the patient was added by that
+  // provider or one of their scribes. Scopes every patient list to "your
+  // team" once someone logs in.
   teamId: string
   // Which facility (SNF, hospital floor, etc.) the patient is being seen
   // at — freeform, since a practice can round at many different sites.
@@ -32,33 +32,39 @@ export interface Patient {
   facility: string
 }
 
-// A message in the mock team-chat page (see lib/chatStore.ts) — distinct
-// from ChatHistoryMessage below, which is the AI interview's own message
-// shape and unrelated to this human-to-human channel.
+// A message on the Team Chat page (see server/messageStore.js, fetched via
+// lib/apiClient.ts) — distinct from ChatHistoryMessage below, which is the
+// AI interview's own message shape and unrelated to this human-to-human
+// channel. Scoped to one team — only people on the same team see it.
 export interface TeamChatMessage {
   id: string
+  teamId: string
   author: string
   text: string
   createdAt: number
 }
 
-// A person on the Team page (see lib/teamStore.ts). Providers supervise
-// scribes — supervisorId names which provider a scribe is assigned to, and
-// is always null for a provider.
+// A registered account, persisted server-side (see server/userStore.js,
+// fetched via lib/apiClient.ts). Providers supervise scribes —
+// supervisorId names which provider a scribe signed up under, and is
+// always null for a provider.
 export interface TeamMember {
   id: string
   name: string
+  email: string
   role: Role
   supervisorId: string | null
 }
 
 // Identity of whoever is currently signed in (see App.tsx's handleLogin) —
-// set the moment they pick their name on LoginScreen, and gone the moment
-// they sign out. teamId is derived from the TeamMember at login time (see
-// lib/teamStore.ts's resolveTeamId) and is what scopes every patient list.
+// set the moment sign-in/sign-up succeeds on LoginScreen, and gone the
+// moment they sign out. Not persisted across a page reload — see App.tsx.
+// teamId is derived from the TeamMember at login time (see lib/team.ts's
+// resolveTeamId) and is what scopes every patient list.
 export interface CurrentUser {
   id: string
   name: string
+  email: string
   role: Role
   teamId: string
 }
