@@ -1,5 +1,5 @@
 import { daysAgoDateKey } from './dateUtils'
-import { createPatient, markPatientUploaded, updatePatientNote } from './patientStore'
+import { createPatient, listPatients, markPatientUploaded, updatePatientNote } from './patientStore'
 
 type MockState = 'noNote' | 'unsigned' | 'signedNotUploaded' | 'complete'
 
@@ -38,6 +38,27 @@ const MOCK_PATIENTS: MockPatientSpec[] = [
   { name: 'Olivia Martin', daysAgo: 0, state: 'unsigned', facility: 'Sunrise Rehab Center' },
 ]
 
+// The fixed roster behind the sign-in page's "View as Provider"/"View as
+// Scribe" demo buttons (see LoginScreen.tsx) — exactly 3 facilities, each
+// with one patient at every stage of the workflow (nothing started yet,
+// drafted and awaiting signature, signed and awaiting upload, fully done),
+// all dated today so a presenter sees the whole pipeline at a glance
+// without digging into rounding-date history.
+const DEMO_PATIENTS: MockPatientSpec[] = [
+  { name: 'Robert Hayes', daysAgo: 0, state: 'noNote', facility: 'Sunrise Rehab Center' },
+  { name: 'Linda Martinez', daysAgo: 0, state: 'unsigned', facility: 'Sunrise Rehab Center' },
+  { name: 'Carlos Jimenez', daysAgo: 0, state: 'signedNotUploaded', facility: 'Sunrise Rehab Center' },
+  { name: 'Patricia Wong', daysAgo: 0, state: 'complete', facility: 'Sunrise Rehab Center' },
+  { name: 'James Bennett', daysAgo: 0, state: 'noNote', facility: 'Riverside SNF' },
+  { name: 'Angela Torres', daysAgo: 0, state: 'unsigned', facility: 'Riverside SNF' },
+  { name: 'Kevin O’Brien', daysAgo: 0, state: 'signedNotUploaded', facility: 'Riverside SNF' },
+  { name: 'Susan Patel', daysAgo: 0, state: 'complete', facility: 'Riverside SNF' },
+  { name: 'Michael Reyes', daysAgo: 0, state: 'noNote', facility: 'Cedar Grove Nursing Home' },
+  { name: 'Nancy Coleman', daysAgo: 0, state: 'unsigned', facility: 'Cedar Grove Nursing Home' },
+  { name: 'David Nguyen', daysAgo: 0, state: 'signedNotUploaded', facility: 'Cedar Grove Nursing Home' },
+  { name: 'Barbara Fischer', daysAgo: 0, state: 'complete', facility: 'Cedar Grove Nursing Home' },
+]
+
 function mockNoteText(name: string): string {
   return `# PHYSICAL MEDICINE AND REHABILITATION CONSULTATION
 
@@ -52,12 +73,8 @@ ${name} presents for follow-up regarding ongoing rehabilitation progress. Report
 Continue current physical therapy regimen. Follow up in 4 weeks to reassess progress.`
 }
 
-// Seeds a realistic spread of patients — no note, unsigned note, signed but
-// not uploaded, and fully complete — across 4 rounding dates, so the
-// Patients screen and home-page stats/rounding-date list have something
-// real to show without clicking through the full flow 15 times by hand.
-export function seedMockPatients(teamId: string): void {
-  for (const spec of MOCK_PATIENTS) {
+function seedPatients(specs: MockPatientSpec[], teamId: string): void {
+  for (const spec of specs) {
     const patient = createPatient(spec.name, teamId, spec.facility, daysAgoDateKey(spec.daysAgo))
     if (spec.state === 'noNote') continue
 
@@ -75,4 +92,20 @@ export function seedMockPatients(teamId: string): void {
       markPatientUploaded(patient.id)
     }
   }
+}
+
+// Seeds a realistic spread of patients — no note, unsigned note, signed but
+// not uploaded, and fully complete — across 4 rounding dates, so the
+// Patients screen and home-page stats/rounding-date list have something
+// real to show without clicking through the full flow 15 times by hand.
+export function seedMockPatients(teamId: string): void {
+  seedPatients(MOCK_PATIENTS, teamId)
+}
+
+// Only seeds once per team — the demo buttons sign into the same fixed
+// account every time, and re-seeding on every click would keep piling up
+// duplicate patients instead of showing a stable, walk-through-able demo.
+export function seedDemoPatientsIfEmpty(teamId: string): void {
+  if (listPatients(teamId).length > 0) return
+  seedPatients(DEMO_PATIENTS, teamId)
 }

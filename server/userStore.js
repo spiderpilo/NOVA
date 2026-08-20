@@ -29,6 +29,40 @@ function seedUsers() {
   ];
 }
 
+// Fixed, well-known accounts for the "View as Provider"/"View as Scribe"
+// buttons on the sign-in page (see LoginScreen.tsx) — a presenter clicks
+// straight in without typing an email. Ensured on every load, not just
+// first-run seeding, so an existing users.json from before this feature
+// still picks them up.
+export const DEMO_PROVIDER_EMAIL = 'demo.provider@orcarehab.demo';
+export const DEMO_SCRIBE_EMAIL = 'demo.scribe@orcarehab.demo';
+
+function withDemoAccounts(users) {
+  const hasProvider = users.some((u) => u.email === DEMO_PROVIDER_EMAIL);
+  const hasScribe = users.some((u) => u.email === DEMO_SCRIBE_EMAIL);
+  if (hasProvider && hasScribe) return users;
+
+  const provider = users.find((u) => u.email === DEMO_PROVIDER_EMAIL) ?? {
+    id: crypto.randomUUID(),
+    name: 'Dr. Demo Provider',
+    email: DEMO_PROVIDER_EMAIL,
+    role: 'provider',
+    supervisorId: null,
+  };
+  const scribe = users.find((u) => u.email === DEMO_SCRIBE_EMAIL) ?? {
+    id: crypto.randomUUID(),
+    name: 'Demo Scribe',
+    email: DEMO_SCRIBE_EMAIL,
+    role: 'scribe',
+    supervisorId: provider.id,
+  };
+
+  const next = [...users];
+  if (!hasProvider) next.push(provider);
+  if (!hasScribe) next.push(scribe);
+  return next;
+}
+
 // Cached as a promise (not the resolved value) so concurrent early callers
 // all await the same load/seed instead of racing to seed the file twice.
 let usersPromise = null;
@@ -36,15 +70,17 @@ let usersPromise = null;
 async function load() {
   if (usersPromise) return usersPromise;
   usersPromise = (async () => {
+    let users;
     try {
       const raw = await readFile(USERS_FILE, 'utf8');
-      return JSON.parse(raw);
+      users = JSON.parse(raw);
     } catch (err) {
       if (err.code !== 'ENOENT') throw err;
-      const seeded = seedUsers();
-      await persist(seeded);
-      return seeded;
+      users = seedUsers();
     }
+    const withDemo = withDemoAccounts(users);
+    if (withDemo !== users) await persist(withDemo);
+    return withDemo;
   })();
   return usersPromise;
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './LoginScreen.css'
 import { ApiError, signIn, signUp } from '../lib/apiClient'
+import { seedDemoPatientsIfEmpty } from '../lib/mockPatients'
+import { resolveTeamId } from '../lib/team'
 import type { TeamMember } from '../lib/types'
 
 interface Props {
@@ -8,6 +10,12 @@ interface Props {
 }
 
 type Mode = 'signIn' | 'signUp'
+
+// Must match server/userStore.js's DEMO_PROVIDER_EMAIL/DEMO_SCRIBE_EMAIL —
+// fixed accounts ensured to exist on every server load specifically so
+// these two buttons always work without anyone needing to sign up first.
+const DEMO_PROVIDER_EMAIL = 'demo.provider@orcarehab.demo'
+const DEMO_SCRIBE_EMAIL = 'demo.scribe@orcarehab.demo'
 
 // The app's only gate — a real (if still passwordless) account, fetched
 // from the backend (see server/routes/team.js). Signing in loads an
@@ -54,6 +62,25 @@ function LoginScreen({ onLogin }: Props) {
       onLogin(member)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to sign up.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Skips the form entirely — signs into a fixed demo account and makes
+  // sure its team has the curated demo patients (seeded once, not
+  // re-seeded on every click) before handing off. Same shared team either
+  // way, since the Demo Scribe is supervised by the Demo Provider — the
+  // two buttons are two viewpoints on one walk-through-able dataset.
+  async function handleDemoLogin(demoEmail: string) {
+    setSubmitting(true)
+    setError(null)
+    try {
+      const member = await signIn(demoEmail)
+      seedDemoPatientsIfEmpty(resolveTeamId(member))
+      onLogin(member)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load the demo.')
     } finally {
       setSubmitting(false)
     }
@@ -120,6 +147,31 @@ function LoginScreen({ onLogin }: Props) {
           >
             {submitting ? 'Please wait…' : mode === 'signIn' ? 'Sign In' : 'Sign Up'}
           </button>
+        </div>
+
+        <div className="login-demo">
+          <div className="login-demo-divider">
+            <span>or explore a demo</span>
+          </div>
+          <div className="login-demo-actions">
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => void handleDemoLogin(DEMO_PROVIDER_EMAIL)}
+              disabled={submitting}
+            >
+              View as Provider
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => void handleDemoLogin(DEMO_SCRIBE_EMAIL)}
+              disabled={submitting}
+            >
+              View as Scribe
+            </button>
+          </div>
+          <p className="login-demo-note">Both open the same walk-through patients, viewed from each role.</p>
         </div>
       </div>
     </div>

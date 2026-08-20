@@ -95,3 +95,43 @@
   width: 100%;
   text-align: center;
 }
+
+.login-demo {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-demo-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.login-demo-divider::before,
+.login-demo-divider::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+.login-demo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.login-demo-actions .btn {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.login-demo-note {
+  color: var(--text);
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
+}
