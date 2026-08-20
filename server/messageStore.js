@@ -4,7 +4,12 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, 'data');
+
+// See userStore.js for why this redirects to /tmp on Vercel — same
+// read-only-filesystem issue, same caveat that it's a stopgap against
+// hard-erroring, not durable storage there.
+const isServerless = Boolean(process.env.VERCEL);
+const DATA_DIR = isServerless ? '/tmp/nova-data' : path.join(__dirname, 'data');
 const MESSAGES_FILE = path.join(DATA_DIR, 'teamMessages.json');
 
 // A JSON file, same test-run stand-in pattern as userStore.js — not a real

@@ -4,7 +4,17 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, 'data');
+
+// Vercel's serverless functions have a read-only filesystem outside /tmp
+// (see server/auditLog.js for the same distinction) — writing to a path
+// under __dirname there throws EROFS and breaks every route that touches
+// accounts. /tmp is writable but not guaranteed to persist or be shared
+// across invocations, so on Vercel this is a stopgap that keeps the app
+// from hard-erroring, not durable storage — accounts can still reset
+// between requests if a cold instance picks them up. A real deployment
+// needs an actual persistent store (Vercel KV/Postgres, etc.) here instead.
+const isServerless = Boolean(process.env.VERCEL);
+const DATA_DIR = isServerless ? '/tmp/nova-data' : path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
 // A JSON file rather than a database — this is a test-run stand-in, same
